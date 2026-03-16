@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AppTrakr — Track Every Application. Land the Right Offer.</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141416;
+    --surface2: #1c1c1f;
+    --surface3: #222226;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #444;
+    --accent: #c8f135;
+    --accent-dim: rgba(200,241,53,0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+    --blue: #60a5fa;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+
+  /* Nav */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 16px 48px; background: rgba(13,13,15,0.88); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo-mark { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .nav-wordmark { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text); }
+  .nav-cta { background: var(--accent); color: #0d0d0f; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 9px 20px; border-radius: 6px; text-decoration: none; transition: opacity .15s, transform .1s; }
+  .nav-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+  /* Hero */
+  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 120px 24px 60px; position: relative; overflow: hidden; }
+  .hero-glow { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 700px; height: 500px; background: radial-gradient(ellipse, rgba(200,241,53,0.055) 0%, transparent 70%); pointer-events: none; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 7px; background: var(--accent-dim); border: 1px solid rgba(200,241,53,0.25); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: var(--accent); font-weight: 500; margin-bottom: 28px; animation: fadeUp .6s ease both; }
+  .hero-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(42px, 7vw, 78px); font-weight: 800; line-height: 1.05; letter-spacing: -.02em; margin-bottom: 20px; animation: fadeUp .7s .1s ease both; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .hero-sub { font-size: clamp(16px, 2vw, 19px); color: var(--text2); max-width: 500px; margin: 0 auto 40px; font-weight: 300; animation: fadeUp .7s .2s ease both; }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; animation: fadeUp .7s .3s ease both; }
+  .btn-primary { background: var(--accent); color: #0d0d0f; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 14px 28px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: opacity .15s, transform .1s; }
+  .btn-primary:hover { opacity: .88; transform: translateY(-2px); }
+  .btn-secondary { background: transparent; color: var(--text2); font-size: 13px; font-weight: 500; padding: 14px 24px; border-radius: 8px; border: 1px solid var(--border2); text-decoration: none; transition: background .15s, color .15s; }
+  .btn-secondary:hover { background: var(--surface2); color: var(--text); }
+  .hero-note { margin-top: 18px; font-size: 12px; color: var(--text3); animation: fadeUp .7s .4s ease both; }
+
+  /* App preview */
+  .preview-wrap { padding: 0 24px 100px; max-width: 1060px; margin: 0 auto; animation: fadeUp .8s .5s ease both; }
+  .preview-frame { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.55); }
+  .preview-bar { background: var(--surface2); padding: 11px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .preview-url { flex: 1; background: var(--bg); border-radius: 5px; padding: 4px 12px; font-size: 11px; color: var(--text3); margin: 0 10px; }
+  .preview-inner { display: flex; height: 400px; }
+
+  /* Sidebar */
+  .psidebar { width: 200px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .psidebar-logo { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+  .psidebar-logo-mark { width: 44px; height: 44px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .psidebar-logo-mark svg { width: 34px; height: 34px; }
+  .psidebar-logo-name { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .psidebar-logo-sub { font-size: 9px; color: var(--text3); margin-top: 1px; }
+  .psidebar-section { padding: 10px 0 4px; }
+  .psidebar-label { font-size: 8px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); padding: 0 14px; margin-bottom: 2px; }
+  .psidebar-item { padding: 5px 14px; font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .psidebar-item.active { color: var(--accent); background: var(--accent-dim); border-left: 2px solid var(--accent); }
+  .psidebar-item svg { flex-shrink: 0; opacity: .7; }
+  .psidebar-item.active svg { opacity: 1; }
+  .pbadge-new { font-size: 7px; font-weight: 700; letter-spacing: .06em; background: rgba(96,165,250,.15); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); border-radius: 3px; padding: 1px 4px; margin-left: auto; }
+  .pbadge-beta { font-size: 7px; font-weight: 700; letter-spacing: .06em; background: rgba(167,139,250,.15); color: #a78bfa; border: 1px solid rgba(167,139,250,.3); border-radius: 3px; padding: 1px 4px; }
+  .pstar { color: var(--accent); font-size: 8px; }
+  .psidebar-divider { border: none; border-top: 1px solid var(--border); margin: 6px 0; }
+  .psidebar-pipeline { padding: 8px 0 4px; }
+  .psidebar-pipe-item { padding: 4px 14px; font-size: 10px; color: var(--text3); display: flex; align-items: center; justify-content: space-between; }
+  .psidebar-pipe-dot { width: 5px; height: 5px; border-radius: 50%; margin-right: 6px; display: inline-block; }
+  .psidebar-count { font-size: 10px; background: var(--surface3); border-radius: 10px; padding: 1px 6px; }
+
+  /* Main content */
+  .pmain { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .pmain-top { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .pmain-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .pmain-sub { font-size: 9px; color: var(--text3); margin-top: 1px; }
+  .pmain-search { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 5px 10px; font-size: 9px; color: var(--text3); width: 150px; }
+  .pstats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; padding: 10px 18px; border-bottom: 1px solid var(--border); }
+  .pstat { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; }
+  .pstat-num { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; line-height: 1; }
+  .pstat-label { font-size: 7px; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-top: 2px; }
+  .ptable-head { display: grid; grid-template-columns: 2fr 1fr 1.2fr .8fr 1fr .9fr; padding: 7px 18px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .pth { font-size: 8px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); }
+  .prow { display: grid; grid-template-columns: 2fr 1fr 1.2fr .8fr 1fr .9fr; padding: 8px 18px; border-bottom: 1px solid var(--border); align-items: center; font-size: 10px; color: var(--text3); }
+  .prow-title { font-weight: 500; color: var(--text); font-size: 11px; }
+  .prole-tag { font-size: 8px; font-weight: 500; padding: 2px 7px; border-radius: 4px; display: inline-block; }
+  .ppill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 20px; font-size: 9px; font-weight: 500; white-space: nowrap; }
+  .ppill::before { content:''; width:4px; height:4px; border-radius:50%; background:currentColor; flex-shrink:0; }
+  .ppill-offer { background:rgba(167,139,250,.12); color:#c4b5fd; }
+  .ppill-interview { background:rgba(200,241,53,.12); color:#c8f135; }
+  .ppill-rejected { background:rgba(248,113,113,.12); color:#fca5a5; }
+  .ppill-applied { background:rgba(96,165,250,.12); color:#93c5fd; }
+  .ppill-ghosted { background:rgba(156,163,175,.1); color:#9ca3af; }
+
+  /* Sections */
+  section { padding: 90px 24px; }
+  .section-inner { max-width: 1060px; margin: 0 auto; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  h2 { font-family: 'Syne', sans-serif; font-size: clamp(26px, 4vw, 46px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; margin-bottom: 14px; }
+  .section-sub { font-size: 17px; color: var(--text2); max-width: 540px; font-weight: 300; margin-bottom: 52px; line-height: 1.6; }
+  .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 26px; transition: border-color .2s, transform .2s; }
+  .feature-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+  .feature-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; font-size: 17px; }
+  .feature-icon.green { background: var(--accent-dim); }
+  .feature-icon.purple { background: var(--purple-dim); }
+  .feature-icon.blue { background: rgba(96,165,250,0.1); }
+  .feature-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 7px; }
+  .feature-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .ai-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .ai-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .ai-card { background: var(--bg); border: 1px solid var(--border); border-radius: 13px; padding: 26px; position: relative; overflow: hidden; transition: border-color .2s, transform .2s; }
+  .ai-card:hover { border-color: rgba(167,139,250,.3); transform: translateY(-3px); }
+  .ai-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--purple),var(--accent)); }
+  .ai-badge { display:inline-flex; align-items:center; gap:5px; background:var(--purple-dim); border:1px solid rgba(167,139,250,.25); border-radius:20px; padding:3px 10px; font-size:10px; color:var(--purple); font-weight:600; margin-bottom:14px; }
+  .ai-card-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:7px; }
+  .ai-card-desc { font-size:13px; color:var(--text2); line-height:1.6; }
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+  .step { display:flex; gap:16px; }
+  .step-num { font-family:'Syne',sans-serif; font-size:34px; font-weight:800; color:var(--border2); flex-shrink:0; line-height:1; margin-top:-3px; }
+  .step-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:6px; }
+  .step-desc { font-size:13px; color:var(--text2); line-height:1.6; }
+  .privacy-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .privacy-card { background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:22px; display:flex; gap:13px; align-items:flex-start; }
+  .privacy-icon { font-size:19px; flex-shrink:0; margin-top:2px; }
+  .privacy-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; margin-bottom:4px; }
+  .privacy-desc { font-size:12px; color:var(--text2); line-height:1.5; }
+  .cta-section { text-align:center; padding:90px 24px 110px; position:relative; overflow:hidden; }
+  .cta-glow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:500px; height:300px; background:radial-gradient(ellipse,rgba(200,241,53,0.07) 0%,transparent 70%); pointer-events:none; }
+  footer { border-top:1px solid var(--border); padding:32px 48px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; }
+  .footer-logo { display:flex; align-items:center; gap:10px; }
+  .footer-logo-mark { width:28px; height:28px; background:var(--accent); border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .footer-logo-mark svg { width:20px; height:20px; }
+  .footer-name { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+  .footer-tag { font-size:11px; color:var(--text3); }
+  .built-badge { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text3); background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:5px 12px; }
+  .built-star { color:var(--accent); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+  @media(max-width:768px){nav{padding:14px 20px}.feature-grid,.ai-grid,.steps,.privacy-grid{grid-template-columns:1fr}.preview-inner{height:260px}.psidebar{display:none}.pstats{grid-template-columns:repeat(2,1fr)}footer{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg width="24" height="24" viewBox="0 0 52 52" fill="none">
+        <rect x="2" y="2" width="7" height="48" rx="2" fill="#0d0d0f"/>
+        <rect x="21" y="2" width="6" height="14" rx="2" fill="#0d0d0f"/>
+        <rect x="21" y="19" width="6" height="10" rx="2" fill="#0d0d0f"/>
+        <rect x="21" y="33" width="6" height="17" rx="2" fill="#0d0d0f"/>
+        <rect x="40" y="2" width="6" height="9" rx="2" fill="#0d0d0f"/>
+        <rect x="40" y="14" width="6" height="8" rx="2" fill="#0d0d0f"/>
+        <rect x="40" y="25" width="6" height="8" rx="2" fill="#0d0d0f"/>
+        <rect x="40" y="36" width="6" height="14" rx="2" fill="#0d0d0f"/>
+        <path d="M9,3 C15,3 17,3 21,4 L21,16 C17,15 15,12 9,14 Z" fill="#0d0d0f"/>
+        <path d="M9,19 C15,19 17,20 21,20 L21,29 C17,28 15,26 9,26 Z" fill="#0d0d0f" opacity=".55"/>
+        <path d="M9,33 C15,33 17,35 21,35 L21,50 C17,48 15,45 9,44 Z" fill="#0d0d0f" opacity=".28"/>
+        <path d="M27,3 C33,3 36,2 40,2 L40,11 C36,10 33,11 27,16 Z" fill="#0d0d0f"/>
+        <path d="M27,20 C33,20 36,16 40,15 L40,22 C36,21 33,25 27,29 Z" fill="#0d0d0f" opacity=".55"/>
+        <path d="M27,24 C33,24 36,26 40,26 L40,33 C36,32 33,29 27,29 Z" fill="#0d0d0f" opacity=".38"/>
+        <path d="M27,35 C33,35 36,37 40,37 L40,50 C36,49 33,46 27,50 Z" fill="#0d0d0f" opacity=".22"/>
+      </svg>
+    </div>
+    <span class="nav-wordmark">AppTrakr</span>
+  </a>
+  <a href="app.html" class="nav-cta">Open App →</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge"><span class="hero-dot"></span>Free · No account required · Open source</div>
+  <h1>Track every application.<br><em>Land the right offer.</em></h1>
+  <p class="hero-sub">AppTrakr is your personal job search command center — built for people who apply seriously and want to win.</p>
+  <div class="hero-actions">
+    <a href="app.html" class="btn-primary">Try it for free <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M8 3l3.5 3.5L8 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a href="#features" class="btn-secondary">See features</a>
+  </div>
+  <p class="hero-note">No signup. No credit card. Your data stays in your browser.</p>
+</section>
+
+<!-- App Preview -->
+<div class="preview-wrap">
+  <div class="preview-frame">
+    <div class="preview-bar">
+      <div class="preview-dot" style="background:#ff5f57"></div>
+      <div class="preview-dot" style="background:#febc2e"></div>
+      <div class="preview-dot" style="background:#28c840"></div>
+      <div class="preview-url">apptrakr.app</div>
+    </div>
+    <div class="preview-inner">
+
+      <!-- Sidebar -->
+      <div class="psidebar">
+        <div class="psidebar-logo">
+          <div class="psidebar-logo-mark">
+            <svg viewBox="0 0 52 52" fill="none">
+              <rect x="2" y="2" width="7" height="48" rx="2" fill="#0d0d0f"/>
+              <rect x="21" y="2" width="6" height="14" rx="2" fill="#0d0d0f"/>
+              <rect x="21" y="19" width="6" height="10" rx="2" fill="#0d0d0f"/>
+              <rect x="21" y="33" width="6" height="17" rx="2" fill="#0d0d0f"/>
+              <rect x="40" y="2" width="6" height="9" rx="2" fill="#0d0d0f"/>
+              <rect x="40" y="14" width="6" height="8" rx="2" fill="#0d0d0f"/>
+              <rect x="40" y="25" width="6" height="8" rx="2" fill="#0d0d0f"/>
+              <rect x="40" y="36" width="6" height="14" rx="2" fill="#0d0d0f"/>
+              <path d="M9,3 C15,3 17,3 21,4 L21,16 C17,15 15,12 9,14 Z" fill="#0d0d0f"/>
+              <path d="M9,19 C15,19 17,20 21,20 L21,29 C17,28 15,26 9,26 Z" fill="#0d0d0f" opacity=".55"/>
+              <path d="M27,3 C33,3 36,2 40,2 L40,11 C36,10 33,11 27,16 Z" fill="#0d0d0f"/>
+              <path d="M27,20 C33,20 36,16 40,15 L40,22 C36,21 33,25 27,29 Z" fill="#0d0d0f" opacity=".55"/>
+            </svg>
+          </div>
+          <div class="psidebar-logo-name">AppTrakr</div>
+          <div class="psidebar-logo-sub">Job application tracker</div>
+        </div>
+
+        <div class="psidebar-section">
+          <div class="psidebar-label">Tabs</div>
+          <div class="psidebar-item active">
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="2.2" rx="1" fill="currentColor" opacity=".5"/><rect x="1" y="5.4" width="11" height="2.2" rx="1" fill="currentColor" opacity=".7"/><rect x="1" y="9.6" width="7" height="2.2" rx="1" fill="currentColor"/></svg>
+            Applications
+          </div>
+          <div class="psidebar-item">
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><rect x="1" y="7" width="2.5" height="5" rx="1" fill="currentColor"/><rect x="5.2" y="4" width="2.5" height="8" rx="1" fill="currentColor" opacity=".7"/><rect x="9.5" y="1" width="2.5" height="11" rx="1" fill="currentColor" opacity=".5"/></svg>
+            Analytics
+            <span class="pbadge-new" style="margin-left:auto">NEW</span>
+          </div>
+          <div class="psidebar-item">
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><circle cx="2" cy="6.5" r="1.5" fill="currentColor"/><circle cx="11" cy="2.5" r="1.5" fill="currentColor" opacity=".5"/><circle cx="11" cy="6.5" r="1.5" fill="currentColor" opacity=".7"/><circle cx="11" cy="10.5" r="1.5" fill="currentColor" opacity=".4"/><path d="M3.5 6.5H6L8 2.5M3.5 6.5H6L8 6.5M3.5 6.5H6L8 10.5" stroke="currentColor" stroke-width="1" opacity=".5"/></svg>
+            Flow Chart
+            <span class="pbadge-new" style="margin-left:auto">NEW</span>
+          </div>
+          <div class="psidebar-item">
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M3,1.5 L8.5,1.5 L11,4 L11,11.5 L3,11.5 Z" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8.5,1.5 L8.5,4 L11,4" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M7.2,5.2 L5.5,7.5 L6.8,7.5 L5.8,9.8 L8.2,7 L6.8,7 Z" fill="currentColor"/></svg>
+            Auto Import
+            <span class="pstar" style="margin-left:auto">✦</span><span class="pbadge-beta">BETA</span>
+          </div>
+          <div class="psidebar-item">
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><rect x="2" y="1" width="9" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M4 4h5M4 6.5h5M4 9h3" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+            Resume Review
+            <span class="pstar" style="margin-left:auto">✦</span><span class="pbadge-beta">BETA</span>
+          </div>
+          <div class="psidebar-item">
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><rect x="1" y="3" width="4.5" height="7" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="7.5" y="3" width="4.5" height="7" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M5.5 6.5h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Offer Compare
+            <span class="pstar" style="margin-left:auto">✦</span><span class="pbadge-beta">BETA</span>
+          </div>
+          <div class="psidebar-item">
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M6.5 1v1.5M6.5 10.5V12M1 6.5h1.5M10.5 6.5H12M2.6 2.6l1.1 1.1M9.3 9.3l1.1 1.1M9.3 3.7L8.2 4.8M3.7 9.3L2.6 10.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+            Settings
+          </div>
+        </div>
+
+        <hr class="psidebar-divider">
+        <div class="psidebar-label" style="padding: 6px 14px 4px">Pipeline</div>
+        <div class="psidebar-pipeline">
+          <div class="psidebar-pipe-item"><span><span class="psidebar-pipe-dot" style="background:#93c5fd"></span>Applied</span><span class="psidebar-count">12</span></div>
+          <div class="psidebar-pipe-item"><span><span class="psidebar-pipe-dot" style="background:#c8f135"></span>Interview</span><span class="psidebar-count">4</span></div>
+          <div class="psidebar-pipe-item"><span><span class="psidebar-pipe-dot" style="background:#c4b5fd"></span>Offer</span><span class="psidebar-count">2</span></div>
+          <div class="psidebar-pipe-item"><span><span class="psidebar-pipe-dot" style="background:#fca5a5"></span>Rejected</span><span class="psidebar-count">5</span></div>
+          <div class="psidebar-pipe-item"><span><span class="psidebar-pipe-dot" style="background:#9ca3af"></span>Ghosted</span><span class="psidebar-count">3</span></div>
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="pmain">
+        <div class="pmain-top">
+          <div><div class="pmain-title">Applications</div><div class="pmain-sub">Showing 26 of 26</div></div>
+          <div class="pmain-search">🔍 Search role, company, industry…</div>
+        </div>
+        <div class="pstats">
+          <div class="pstat"><div class="pstat-num" style="color:#f0f0f0">26</div><div class="pstat-label">Total</div></div>
+          <div class="pstat" style="border-color:rgba(200,241,53,.18)"><div class="pstat-num" style="color:#c8f135">18</div><div class="pstat-label">Active</div></div>
+          <div class="pstat"><div class="pstat-num" style="color:#93c5fd">4</div><div class="pstat-label">Interviews</div></div>
+          <div class="pstat"><div class="pstat-num" style="color:#c4b5fd">2</div><div class="pstat-label">Offers</div></div>
+        </div>
+        <div class="ptable-head">
+          <div class="pth">Role</div>
+          <div class="pth">Company</div>
+          <div class="pth">Role Type</div>
+          <div class="pth">Applied</div>
+          <div class="pth">Status</div>
+          <div class="pth">Location</div>
+        </div>
+        <div class="prow">
+          <div class="prow-title">Sr. Product Manager, Payments</div>
+          <div>Stripe</div>
+          <div><span class="prole-tag" style="background:rgba(200,241,53,.1);color:#c8f135">Product Mgmt</span></div>
+          <div>Mar 1</div>
+          <div><span class="ppill ppill-offer">Offer</span></div>
+          <div>SF, CA</div>
+        </div>
+        <div class="prow">
+          <div class="prow-title">Product Manager, Enterprise</div>
+          <div>Notion</div>
+          <div><span class="prole-tag" style="background:rgba(200,241,53,.1);color:#c8f135">Product Mgmt</span></div>
+          <div>Mar 5</div>
+          <div><span class="ppill ppill-interview">Interview</span></div>
+          <div>Remote</div>
+        </div>
+        <div class="prow">
+          <div class="prow-title">Senior Data Analyst</div>
+          <div>Spotify</div>
+          <div><span class="prole-tag" style="background:rgba(96,165,250,.1);color:#60a5fa">Analytics</span></div>
+          <div>Mar 3</div>
+          <div><span class="ppill ppill-rejected">Rejected</span></div>
+          <div>Remote</div>
+        </div>
+        <div class="prow">
+          <div class="prow-title">Product Manager, Growth</div>
+          <div>Duolingo</div>
+          <div><span class="prole-tag" style="background:rgba(200,241,53,.1);color:#c8f135">Product Mgmt</span></div>
+          <div>Mar 2</div>
+          <div><span class="ppill ppill-applied">Applied</span></div>
+          <div>Pittsburgh</div>
+        </div>
+        <div class="prow" style="opacity:.5">
+          <div class="prow-title">Sr. PM, ML Platform</div>
+          <div>Databricks</div>
+          <div><span class="prole-tag" style="background:rgba(167,139,250,.1);color:#a78bfa">Technical PM</span></div>
+          <div>Mar 4</div>
+          <div><span class="ppill ppill-applied">Applied</span></div>
+          <div>Remote</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">Core Features</div>
+    <h2>Everything your job search needs.</h2>
+    <p class="section-sub">Built by job seekers, for job seekers. Every feature designed around how the search actually works.</p>
+    <div class="feature-grid">
+      <div class="feature-card"><div class="feature-icon green">📋</div><div class="feature-title">Applications Table</div><p class="feature-desc">Track every role, company, status, and stage in one clean table. Filter by role type, industry, location, and status. Search everything instantly.</p></div>
+      <div class="feature-card"><div class="feature-icon blue">📊</div><div class="feature-title">Analytics Dashboard</div><p class="feature-desc">Visualise your pipeline with conversion rates, role type breakdowns, industry charts, and daily activity. Know exactly where you stand.</p></div>
+      <div class="feature-card"><div class="feature-icon green">🌊</div><div class="feature-title">Sankey Flow Chart</div><p class="feature-desc">See your entire application journey visualised — from applied to offer. Watch where applications drop off at each stage in real time.</p></div>
+      <div class="feature-card"><div class="feature-icon purple">📝</div><div class="feature-title">Status Timeline</div><p class="feature-desc">Log every stage per application — phone screens, interviews, offers. Each job has its own timeline that powers the flow chart automatically.</p></div>
+      <div class="feature-card"><div class="feature-icon blue">📤</div><div class="feature-title">Export &amp; Import</div><p class="feature-desc">Export your full dataset as JSON anytime. Import it on any browser, any device. Your data is always yours — no lock-in.</p></div>
+      <div class="feature-card"><div class="feature-icon green">⚙️</div><div class="feature-title">Zero Setup</div><p class="feature-desc">Open the app and start tracking. No account, no signup, no subscription. Data lives in your browser until you export it.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- AI Features -->
+<section class="ai-section">
+  <div class="section-inner">
+    <div class="section-label">AI-Powered</div>
+    <h2>Claude works with you.</h2>
+    <p class="section-sub">Bring your own Anthropic API key and unlock three AI-powered features that go beyond simple tracking.</p>
+    <div class="ai-grid">
+      <div class="ai-card"><div class="ai-badge"><span>✦</span> AI</div><div class="ai-card-title">Auto Import</div><p class="ai-card-desc">Paste a job posting URL or description. Claude reads it, extracts the title, company, location, salary, role type, and industry — and adds it to your tracker in one click.</p></div>
+      <div class="ai-card"><div class="ai-badge"><span>✦</span> AI</div><div class="ai-card-title">Resume Review</div><p class="ai-card-desc">Paste your resume and a job description. Get a match score, strengths, gaps, missing keywords, and specific recommendations to improve your fit.</p></div>
+      <div class="ai-card"><div class="ai-badge"><span>✦</span> AI</div><div class="ai-card-title">Offer Comparison</div><p class="ai-card-desc">Select two or three offers from your tracker. Claude scores each on compensation, growth potential, and lifestyle fit — then recommends the best choice.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">How it works</div>
+    <h2>Simple by design.</h2>
+    <p class="section-sub">No tutorial needed. Open the app and you'll know what to do.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">01</div><div><div class="step-title">Add your applications</div><p class="step-desc">Manually add jobs or use Auto Import to paste a URL — Claude extracts all the details automatically.</p></div></div>
+      <div class="step"><div class="step-num">02</div><div><div class="step-title">Log your progress</div><p class="step-desc">As you hear back, add stages to each job's timeline — phone screen, interviews, offer. The flow chart updates automatically.</p></div></div>
+      <div class="step"><div class="step-num">03</div><div><div class="step-title">Analyse and decide</div><p class="step-desc">Review your analytics, compare offers side by side, and use Resume Review to prep for every interview.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Privacy -->
+<section style="padding-top:0">
+  <div class="section-inner">
+    <div class="section-label">Privacy first</div>
+    <h2>Your data. Your browser.</h2>
+    <p class="section-sub">No servers. No accounts. No surveillance.</p>
+    <div class="privacy-grid">
+      <div class="privacy-card"><div class="privacy-icon">🔒</div><div><div class="privacy-title">Stored locally</div><p class="privacy-desc">All your application data lives in your browser's localStorage. Nothing is ever sent to any server.</p></div></div>
+      <div class="privacy-card"><div class="privacy-icon">🔑</div><div><div class="privacy-title">Your API key</div><p class="privacy-desc">AI features use your own Anthropic key, stored only in your browser. Goes directly to Anthropic — nowhere else.</p></div></div>
+      <div class="privacy-card"><div class="privacy-icon">💾</div><div><div class="privacy-title">Export anytime</div><p class="privacy-desc">Export everything as a JSON file in one click. Import it on any device. You're never locked in.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <div class="section-label">Get started</div>
+  <h2>Ready to take control<br>of your job search?</h2>
+  <p style="font-size:17px;color:var(--text2);margin-bottom:36px;font-weight:300">Free, private, and ready in seconds.</p>
+  <a href="app.html" class="btn-primary" style="font-size:14px;padding:15px 34px">Open AppTrakr for free <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M8 3l3.5 3.5L8 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">
+    <div class="footer-logo-mark">
+      <svg viewBox="0 0 52 52" fill="none">
+        <rect x="2" y="2" width="7" height="48" rx="2" fill="#0d0d0f"/>
+        <rect x="21" y="2" width="6" height="14" rx="2" fill="#0d0d0f"/>
+        <rect x="40" y="2" width="6" height="9" rx="2" fill="#0d0d0f"/>
+        <path d="M9,3 C15,3 17,3 21,4 L21,16 C17,15 15,12 9,14 Z" fill="#0d0d0f"/>
+        <path d="M27,3 C33,3 36,2 40,2 L40,11 C36,10 33,11 27,16 Z" fill="#0d0d0f"/>
+      </svg>
+    </div>
+    <div>
+      <div class="footer-name">AppTrakr</div>
+      <div class="footer-tag">Job application tracker</div>
+    </div>
+  </div>
+  <div class="built-badge"><span class="built-star">✦</span> Built with Claude</div>
+</footer>
+
+<script>
+  document.querySelectorAll('a[href^="#"]').forEach(a=>{
+    a.addEventListener('click',e=>{e.preventDefault();document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});});
+  });
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.animation='fadeUp .6s ease forwards';obs.unobserve(e.target);}});},{threshold:0.1});
+  document.querySelectorAll('.feature-card,.ai-card,.step,.privacy-card').forEach(el=>{el.style.opacity='0';obs.observe(el);});
+</script>
+</body>
+</html>
