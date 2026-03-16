@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AppTrakr — Track Every Application. Land the Right Offer.</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141416;
+    --surface2: #1c1c1f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #444;
+    --accent: #c8f135;
+    --accent-dim: rgba(200,241,53,0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+    --blue: #60a5fa;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 48px;
+    background: rgba(13,13,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .nav-logo-mark {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  .nav-logo-mark svg { width: 22px; height: 22px; }
+
+  .nav-logo-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .nav-cta {
+    background: var(--accent);
+    color: #0d0d0f;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 9px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: opacity .15s, transform .1s;
+  }
+
+  .nav-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(200,241,53,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,241,53,0.25);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 28px;
+    animation: fadeUp .6s ease both;
+  }
+
+  .hero-badge-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .4; }
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(42px, 7vw, 80px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    margin-bottom: 20px;
+    animation: fadeUp .7s .1s ease both;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 20px);
+    color: var(--text2);
+    max-width: 520px;
+    margin: 0 auto 40px;
+    font-weight: 300;
+    animation: fadeUp .7s .2s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp .7s .3s ease both;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0d0f;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity .15s, transform .1s;
+  }
+
+  .btn-primary:hover { opacity: .88; transform: translateY(-2px); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 14px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+
+  .btn-secondary:hover { background: var(--surface2); color: var(--text); }
+
+  .hero-note {
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--text3);
+    animation: fadeUp .7s .4s ease both;
+  }
+
+  /* ── App preview ── */
+  .preview-wrap {
+    padding: 0 24px 100px;
+    max-width: 1100px;
+    margin: 0 auto;
+    animation: fadeUp .8s .5s ease both;
+  }
+
+  .preview-frame {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+  }
+
+  .preview-bar {
+    background: var(--surface2);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .preview-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .preview-url {
+    flex: 1;
+    background: var(--bg);
+    border-radius: 5px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--text3);
+    margin: 0 10px;
+    font-family: 'DM Sans', monospace;
+  }
+
+  .preview-inner {
+    display: flex;
+    height: 420px;
+  }
+
+  .preview-sidebar {
+    width: 180px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    flex-shrink: 0;
+  }
+
+  .preview-logo-area {
+    padding: 8px 16px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .preview-logo-box {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  .preview-logo-box svg { width: 26px; height: 26px; }
+
+  .preview-logo-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .preview-logo-sub { font-size: 9px; color: var(--text3); margin-top: 1px; }
+
+  .preview-nav-label {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 0 16px;
+    margin-bottom: 4px;
+  }
+
+  .preview-nav-item {
+    padding: 6px 16px;
+    font-size: 11px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .preview-nav-item.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-left: 2px solid var(--accent);
+  }
+
+  .preview-nav-item .ai-star { color: var(--accent); font-size: 9px; }
+  .preview-nav-item .beta { font-size: 7px; background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.3); border-radius: 3px; padding: 1px 4px; }
+
+  .preview-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .preview-topbar {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .preview-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .preview-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
+  .preview-search {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 10px;
+    color: var(--text3);
+    width: 160px;
+  }
+
+  .preview-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .preview-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .preview-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .preview-stat-label { font-size: 8px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+  .preview-table { flex: 1; overflow: hidden; }
+
+  .preview-thead {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .preview-th {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .preview-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+    padding: 9px 20px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    font-size: 10px;
+    color: var(--text2);
+  }
+
+  .preview-role { font-weight: 500; color: var(--text); font-size: 11px; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 500;
+  }
+
+  .pill::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .pill-applied { background: rgba(96,165,250,.12); color: #93c5fd; }
+  .pill-interview { background: rgba(200,241,53,.12); color: #c8f135; }
+  .pill-offer { background: rgba(167,139,250,.12); color: #c4b5fd; }
+  .pill-rejected { background: rgba(248,113,113,.12); color: #fca5a5; }
+  .pill-ghosted { background: rgba(156,163,175,.1); color: #9ca3af; }
+
+  /* ── Sections ── */
+  section { padding: 100px 24px; }
+
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin-bottom: 16px;
+  }
+
+  .section-sub {
+    font-size: 17px;
+    color: var(--text2);
+    max-width: 560px;
+    font-weight: 300;
+    margin-bottom: 56px;
+    line-height: 1.6;
+  }
+
+  /* ── Feature grid ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: border-color .2s, transform .2s;
+  }
+
+  .feature-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-3px);
+  }
+
+  .feature-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+    font-size: 18px;
+  }
+
+  .feature-icon.green { background: var(--accent-dim); }
+  .feature-icon.purple { background: var(--purple-dim); }
+  .feature-icon.blue { background: rgba(96,165,250,0.1); }
+
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .feature-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+  /* ── AI section ── */
+  .ai-section {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ai-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .ai-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s;
+  }
+
+  .ai-card:hover { border-color: rgba(167,139,250,.3); transform: translateY(-3px); }
+
+  .ai-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--purple), var(--accent));
+  }
+
+  .ai-star {
+    color: var(--accent);
+    font-size: 16px;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--purple-dim);
+    border: 1px solid rgba(167,139,250,.25);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 10px;
+    color: var(--purple);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  .ai-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .ai-card-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+  /* ── Steps ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .step {
+    display: flex;
+    gap: 18px;
+  }
+
+  .step-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--border2);
+    flex-shrink: 0;
+    line-height: 1;
+    margin-top: -4px;
+  }
+
+  .step-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .step-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+  /* ── Privacy ── */
+  .privacy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .privacy-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .privacy-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .privacy-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .privacy-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+  /* ── CTA section ── */
+  .cta-section {
+    text-align: center;
+    padding: 100px 24px 120px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px; height: 300px;
+    background: radial-gradient(ellipse, rgba(200,241,53,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta-section h2 { margin-bottom: 16px; }
+  .cta-section p { font-size: 17px; color: var(--text2); margin-bottom: 36px; font-weight: 300; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-left { display: flex; align-items: center; gap: 10px; }
+  .footer-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .footer-tag { font-size: 12px; color: var(--text3); }
+
+  .built-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+  }
+
+  .built-badge .star { color: var(--accent); }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .feature-grid, .ai-grid, .steps, .privacy-grid { grid-template-columns: 1fr; }
+    .preview-inner { height: 280px; }
+    .preview-sidebar { display: none; }
+    .preview-stats { grid-template-columns: repeat(2,1fr); }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 52 52" fill="none">
+        <rect x="2" y="4" width="8" height="44" rx="2" fill="#0d0d0f"/>
+        <rect x="21" y="4" width="6" height="14" rx="2" fill="#0d0d0f"/>
+        <rect x="21" y="21" width="6" height="10" rx="2" fill="#0d0d0f" opacity=".7"/>
+        <rect x="21" y="35" width="6" height="13" rx="2" fill="#0d0d0f" opacity=".5"/>
+        <rect x="40" y="4" width="6" height="9" rx="2" fill="#0d0d0f"/>
+        <rect x="40" y="16" width="6" height="8" rx="2" fill="#0d0d0f" opacity=".8"/>
+        <rect x="40" y="27" width="6" height="8" rx="2" fill="#0d0d0f" opacity=".6"/>
+        <rect x="40" y="38" width="6" height="10" rx="2" fill="#0d0d0f" opacity=".4"/>
+        <path d="M10,6 C16,6 17,7 21,8 L21,18 C17,16 16,13 10,15 Z" fill="#0d0d0f"/>
+        <path d="M10,22 C16,22 17,23 21,23 L21,31 C17,30 16,28 10,28 Z" fill="#0d0d0f" opacity=".6"/>
+        <path d="M10,36 C16,36 17,38 21,38 L21,48 C17,46 16,43 10,44 Z" fill="#0d0d0f" opacity=".35"/>
+        <path d="M27,6 C33,6 36,4 40,4 L40,13 C36,12 33,13 27,18 Z" fill="#0d0d0f"/>
+        <path d="M27,22 C33,22 36,18 40,17 L40,24 C36,23 33,27 27,31 Z" fill="#0d0d0f" opacity=".6"/>
+        <path d="M27,26 C33,26 36,28 40,28 L40,35 C36,34 33,31 27,31 Z" fill="#0d0d0f" opacity=".4"/>
+        <path d="M27,37 C33,37 36,39 40,39 L40,48 C36,47 33,44 27,48 Z" fill="#0d0d0f" opacity=".25"/>
+      </svg>
+    </div>
+    <span class="nav-logo-name">AppTrakr</span>
+  </a>
+  <a href="app.html" class="nav-cta">Open App →</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Free · No account required · Open source
+  </div>
+  <h1>Track every application.<br><em>Land the right offer.</em></h1>
+  <p class="hero-sub">AppTrakr is your personal job search command center — built for people who apply seriously and want to win.</p>
+  <div class="hero-actions">
+    <a href="app.html" class="btn-primary">
+      Try it for free
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a href="#features" class="btn-secondary">See features</a>
+  </div>
+  <p class="hero-note">No signup. No credit card. Your data stays in your browser.</p>
+</section>
+
+<!-- App Preview -->
+<div class="preview-wrap">
+  <div class="preview-frame">
+    <div class="preview-bar">
+      <div class="preview-dot" style="background:#ff5f57"></div>
+      <div class="preview-dot" style="background:#febc2e"></div>
+      <div class="preview-dot" style="background:#28c840"></div>
+      <div class="preview-url">apptrakr.app</div>
+    </div>
+    <div class="preview-inner">
+      <div class="preview-sidebar">
+        <div class="preview-logo-area">
+          <div class="preview-logo-box">
+            <svg viewBox="0 0 52 52" fill="none">
+              <rect x="2" y="4" width="8" height="44" rx="2" fill="#0d0d0f"/>
+              <rect x="21" y="4" width="6" height="14" rx="2" fill="#0d0d0f"/>
+              <rect x="40" y="4" width="6" height="9" rx="2" fill="#0d0d0f"/>
+              <rect x="40" y="16" width="6" height="8" rx="2" fill="#0d0d0f" opacity=".7"/>
+              <path d="M10,6 C16,6 17,7 21,8 L21,18 C17,16 16,13 10,15 Z" fill="#0d0d0f"/>
+              <path d="M27,6 C33,6 36,4 40,4 L40,13 C36,12 33,13 27,18 Z" fill="#0d0d0f"/>
+            </svg>
+          </div>
+          <div class="preview-logo-name">AppTrakr</div>
+          <div class="preview-logo-sub">Application pipeline</div>
+        </div>
+        <div class="preview-nav-label" style="margin-top:8px">Tabs</div>
+        <div class="preview-nav-item active">≡ Applications</div>
+        <div class="preview-nav-item">↗ Analytics <span class="beta" style="margin-left:auto">NEW</span></div>
+        <div class="preview-nav-item">∿ Flow Chart <span class="beta" style="margin-left:auto">NEW</span></div>
+        <div class="preview-nav-item">↓ Auto Import <span class="ai-star">✦</span><span class="beta">BETA</span></div>
+        <div class="preview-nav-item">✦ Resume Review <span class="beta">BETA</span></div>
+        <div class="preview-nav-item">≋ Offer Compare <span class="beta">BETA</span></div>
+      </div>
+      <div class="preview-main">
+        <div class="preview-topbar">
+          <div>
+            <div class="preview-title">Applications</div>
+            <div class="preview-sub">Showing 25 of 25</div>
+          </div>
+          <div class="preview-search">🔍 Search role, company, industry…</div>
+        </div>
+        <div class="preview-stats">
+          <div class="preview-stat"><div class="preview-stat-num" style="color:#f0f0f0">25</div><div class="preview-stat-label">Total</div></div>
+          <div class="preview-stat" style="border-color:rgba(200,241,53,.2)"><div class="preview-stat-num" style="color:#c8f135">18</div><div class="preview-stat-label">Active</div></div>
+          <div class="preview-stat"><div class="preview-stat-num" style="color:#93c5fd">4</div><div class="preview-stat-label">Interviews</div></div>
+          <div class="preview-stat"><div class="preview-stat-num" style="color:#c4b5fd">2</div><div class="preview-stat-label">Offers</div></div>
+        </div>
+        <div class="preview-table">
+          <div class="preview-thead">
+            <div class="preview-th">Role</div>
+            <div class="preview-th">Company</div>
+            <div class="preview-th">Role Type</div>
+            <div class="preview-th">Applied</div>
+            <div class="preview-th">Status</div>
+            <div class="preview-th">Location</div>
+          </div>
+          <div class="preview-row">
+            <div class="preview-role">Senior Product Manager, Payments</div>
+            <div>Stripe</div>
+            <div style="font-size:9px;color:#c8f135;background:rgba(200,241,53,.1);padding:2px 6px;border-radius:4px;display:inline-block">Product Mgmt</div>
+            <div>Mar 1</div>
+            <div><span class="pill pill-offer">Offer</span></div>
+            <div style="color:#555">SF, CA</div>
+          </div>
+          <div class="preview-row">
+            <div class="preview-role">Product Manager, Enterprise</div>
+            <div>Notion</div>
+            <div style="font-size:9px;color:#c8f135;background:rgba(200,241,53,.1);padding:2px 6px;border-radius:4px;display:inline-block">Product Mgmt</div>
+            <div>Mar 5</div>
+            <div><span class="pill pill-interview">Interview</span></div>
+            <div style="color:#555">Remote</div>
+          </div>
+          <div class="preview-row">
+            <div class="preview-role">Senior Data Analyst</div>
+            <div>Spotify</div>
+            <div style="font-size:9px;color:#60a5fa;background:rgba(96,165,250,.1);padding:2px 6px;border-radius:4px;display:inline-block">Analytics</div>
+            <div>Mar 3</div>
+            <div><span class="pill pill-rejected">Rejected</span></div>
+            <div style="color:#555">Remote</div>
+          </div>
+          <div class="preview-row">
+            <div class="preview-role">Product Manager, Growth</div>
+            <div>Duolingo</div>
+            <div style="font-size:9px;color:#c8f135;background:rgba(200,241,53,.1);padding:2px 6px;border-radius:4px;display:inline-block">Product Mgmt</div>
+            <div>Mar 2</div>
+            <div><span class="pill pill-applied">Applied</span></div>
+            <div style="color:#555">Pittsburgh</div>
+          </div>
+          <div class="preview-row" style="opacity:.4">
+            <div class="preview-role">Senior Product Manager</div>
+            <div>Shopify</div>
+            <div style="font-size:9px;color:#c8f135;background:rgba(200,241,53,.1);padding:2px 6px;border-radius:4px;display:inline-block">Product Mgmt</div>
+            <div>Mar 8</div>
+            <div><span class="pill pill-interview">Interview</span></div>
+            <div style="color:#555">Remote</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">Core Features</div>
+    <h2>Everything your job search needs.</h2>
+    <p class="section-sub">Built by job seekers, for job seekers. Every feature designed around how the search actually works.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon green">📋</div>
+        <div class="feature-title">Applications Table</div>
+        <p class="feature-desc">Track every role, company, status, and stage in one clean table. Filter by role type, industry, location, and status. Search across everything instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon blue">📊</div>
+        <div class="feature-title">Analytics Dashboard</div>
+        <p class="feature-desc">Visualise your pipeline with conversion rates, role type breakdowns, industry charts, and daily activity. Know exactly where you stand.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">🌊</div>
+        <div class="feature-title">Sankey Flow Chart</div>
+        <p class="feature-desc">See your entire application journey visualised — from applied to offer. Watch where applications drop off at each stage in real time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon purple">📝</div>
+        <div class="feature-title">Status Timeline</div>
+        <p class="feature-desc">Log every stage per application — phone screens, interviews, offers. Each job has its own timeline that powers the flow chart automatically.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon blue">📤</div>
+        <div class="feature-title">Export &amp; Import</div>
+        <p class="feature-desc">Export your full dataset as JSON anytime. Import it on any browser, any device. Your data is always yours — no lock-in.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">⚙️</div>
+        <div class="feature-title">Zero Setup</div>
+        <p class="feature-desc">Open the app and start tracking. No account, no signup, no subscription. Data lives in your browser's localStorage until you export it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI Features -->
+<section class="ai-section">
+  <div class="section-inner">
+    <div class="section-label">AI-Powered</div>
+    <h2>Claude works with you.</h2>
+    <p class="section-sub">Bring your own Anthropic API key and unlock three AI-powered features that go beyond simple tracking.</p>
+    <div class="ai-grid">
+      <div class="ai-card">
+        <div class="ai-badge"><span>✦</span> AI</div>
+        <div class="ai-card-title">Auto Import</div>
+        <p class="ai-card-desc">Paste a job posting URL or description. Claude reads it, extracts the title, company, location, salary, role type, and industry — and adds it to your tracker in one click.</p>
+      </div>
+      <div class="ai-card">
+        <div class="ai-badge"><span>✦</span> AI</div>
+        <div class="ai-card-title">Resume Review</div>
+        <p class="ai-card-desc">Paste your resume and a job description. Get a match score, strengths, gaps, missing keywords, and specific recommendations to improve your fit — like LinkedIn's job match but deeper.</p>
+      </div>
+      <div class="ai-card">
+        <div class="ai-badge"><span>✦</span> AI</div>
+        <div class="ai-card-title">Offer Comparison</div>
+        <p class="ai-card-desc">Select two or three offers from your tracker. Claude scores each on compensation, growth potential, and lifestyle fit — then recommends the best choice with a clear rationale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">How it works</div>
+    <h2>Simple by design.</h2>
+    <p class="section-sub">No tutorial needed. Open the app and you'll know what to do.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div>
+          <div class="step-title">Add your applications</div>
+          <p class="step-desc">Manually add jobs or use Auto Import to paste a URL — Claude extracts all the details automatically.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div>
+          <div class="step-title">Log your progress</div>
+          <p class="step-desc">As you hear back, add stages to each job's timeline — phone screen, interviews, offer. The flow chart updates automatically.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div>
+          <div class="step-title">Analyse and decide</div>
+          <p class="step-desc">Review your analytics, compare offers side by side, and use Resume Review to prep for every interview.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Privacy -->
+<section style="padding-top:0">
+  <div class="section-inner">
+    <div class="section-label">Privacy first</div>
+    <h2>Your data. Your browser.</h2>
+    <p class="section-sub">No servers. No accounts. No surveillance.</p>
+    <div class="privacy-grid">
+      <div class="privacy-card">
+        <div class="privacy-icon">🔒</div>
+        <div>
+          <div class="privacy-title">Stored locally</div>
+          <p class="privacy-desc">All your application data lives in your browser's localStorage. Nothing is ever sent to any server.</p>
+        </div>
+      </div>
+      <div class="privacy-card">
+        <div class="privacy-icon">🔑</div>
+        <div>
+          <div class="privacy-title">Your API key</div>
+          <p class="privacy-desc">AI features use your own Anthropic key, stored only in your browser. It goes directly to Anthropic — nowhere else.</p>
+        </div>
+      </div>
+      <div class="privacy-card">
+        <div class="privacy-icon">💾</div>
+        <div>
+          <div class="privacy-title">Export anytime</div>
+          <p class="privacy-desc">Export everything as a JSON file in one click. Import it on any device. You're never locked in.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <div class="section-label">Get started</div>
+  <h2>Ready to take control<br>of your job search?</h2>
+  <p>Free, private, and ready in seconds.</p>
+  <a href="app.html" class="btn-primary" style="font-size:14px;padding:16px 36px">
+    Open AppTrakr for free
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-left">
+    <div class="nav-logo-mark" style="width:28px;height:28px;border-radius:7px">
+      <svg viewBox="0 0 52 52" fill="none" width="20" height="20">
+        <rect x="2" y="4" width="8" height="44" rx="2" fill="#0d0d0f"/>
+        <rect x="21" y="4" width="6" height="14" rx="2" fill="#0d0d0f"/>
+        <rect x="40" y="4" width="6" height="9" rx="2" fill="#0d0d0f"/>
+        <path d="M10,6 C16,6 17,7 21,8 L21,18 C17,16 16,13 10,15 Z" fill="#0d0d0f"/>
+        <path d="M27,6 C33,6 36,4 40,4 L40,13 C36,12 33,13 27,18 Z" fill="#0d0d0f"/>
+      </svg>
+    </div>
+    <div>
+      <div class="footer-name">AppTrakr</div>
+      <div class="footer-tag">Job application tracker</div>
+    </div>
+  </div>
+  <div class="built-badge">
+    <span class="star">✦</span>
+    Built with Claude
+  </div>
+</footer>
+
+<script>
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // Fade in elements on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting) {
+        e.target.style.animation = 'fadeUp .6s ease forwards';
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature-card, .ai-card, .step, .privacy-card').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
