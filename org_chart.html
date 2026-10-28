@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Org Chart</title>
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#fff; --ink:#1d2939; --muted:#667085; --line:#c3cad5;
+  --border:#e4e7ec; --accent:#0b5cad; --accent-soft:#e8f1fb; --hl:#f5b301;
+  --card-w:228px; --card-h:84px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+button,input,select{font:inherit;color:inherit}
+header{height:60px;display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--border);position:relative;z-index:5}
+header h1{font-size:17px;font-weight:650;margin:0 8px 0 0;white-space:nowrap}
+header .count{color:var(--muted);font-size:13px;white-space:nowrap}
+.search{position:relative;flex:0 1 340px;margin-left:auto}
+.search input{width:100%;height:36px;border:1px solid var(--border);border-radius:8px;padding:0 12px 0 34px;background:#f9fafb;outline:none}
+.search input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.search svg{position:absolute;left:10px;top:10px;color:var(--muted)}
+.results{position:absolute;top:40px;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(16,24,40,.12);max-height:360px;overflow:auto;display:none}
+.results.open{display:block}
+.results div{padding:8px 12px;cursor:pointer;border-bottom:1px solid #f2f4f7}
+.results div:last-child{border-bottom:0}
+.results div.active,.results div:hover{background:var(--accent-soft)}
+.results b{display:block;font-size:14px;font-weight:600}
+.results span{font-size:12px;color:var(--muted)}
+select{height:36px;border:1px solid var(--border);border-radius:8px;padding:0 8px;background:#fff;max-width:200px}
+.btn{height:36px;border:1px solid var(--border);border-radius:8px;background:#fff;padding:0 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#f9fafb;border-color:#d0d5dd}
+.btngroup{display:flex}
+.btngroup .btn{border-radius:0;margin-left:-1px;padding:0 10px}
+.btngroup .btn:first-child{border-radius:8px 0 0 8px;margin-left:0}
+.btngroup .btn:last-child{border-radius:0 8px 8px 0}
+
+#viewport{position:absolute;top:60px;left:0;right:0;bottom:0;overflow:hidden;cursor:grab;
+  background-image:radial-gradient(#d9dee6 1px,transparent 1px);background-size:22px 22px}
+#viewport.dragging{cursor:grabbing}
+#stage{position:absolute;left:0;top:0;transform-origin:0 0}
+#wires{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+#wires path{fill:none;stroke:var(--line);stroke-width:1.5}
+
+.card{position:absolute;width:var(--card-w);height:var(--card-h);background:#fff;border:1px solid var(--border);
+  border-radius:10px;box-shadow:0 1px 2px rgba(16,24,40,.06);display:flex;align-items:center;gap:10px;padding:10px 12px 10px 14px;
+  cursor:pointer;transition:box-shadow .15s,opacity .2s,border-color .15s;overflow:visible}
+.card::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:5px;border-radius:10px 0 0 10px;background:var(--dc)}
+.card:hover{box-shadow:0 4px 14px rgba(16,24,40,.12);border-color:#d0d5dd}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),0 4px 14px rgba(16,24,40,.12)}
+.card.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%,40%{box-shadow:0 0 0 6px rgba(245,179,1,.55)}100%{box-shadow:0 0 0 0 rgba(245,179,1,0)}}
+.card.dim{opacity:.28}
+.av{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:650;font-size:14px;color:#fff;background:var(--dc)}
+.info{min-width:0;flex:1}
+.nm{font-weight:650;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt{font-size:12px;color:var(--ink);opacity:.8;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px}
+.dp{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.tog{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);min-width:30px;height:22px;padding:0 7px;border-radius:11px;
+  border:1px solid #d0d5dd;background:#fff;font-size:11px;font-weight:650;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;z-index:2}
+.tog:hover{border-color:var(--accent);color:var(--accent)}
+.tog.open{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#panel{position:absolute;top:60px;right:0;bottom:0;width:340px;background:#fff;border-left:1px solid var(--border);
+  box-shadow:-8px 0 24px rgba(16,24,40,.06);transform:translateX(100%);transition:transform .22s ease;z-index:4;display:flex;flex-direction:column}
+#panel.open{transform:none}
+.ph{padding:22px 20px 16px;border-bottom:1px solid var(--border);position:relative}
+.ph .av{width:64px;height:64px;font-size:22px;margin-bottom:12px}
+.ph h2{margin:0;font-size:19px}
+.ph .tt{font-size:14px;-webkit-line-clamp:3;margin-top:4px}
+.close{position:absolute;right:12px;top:12px;width:30px;height:30px;border:0;background:none;border-radius:6px;cursor:pointer;font-size:20px;color:var(--muted)}
+.close:hover{background:#f2f4f7}
+.pb{padding:4px 20px 20px;overflow:auto;flex:1}
+.sec{margin-top:16px}
+.sec h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:650}
+.kv{display:grid;grid-template-columns:100px 1fr;gap:6px 10px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+.stats{display:flex;gap:10px}
+.stat{flex:1;background:#f9fafb;border:1px solid var(--border);border-radius:8px;padding:10px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.plist{display:flex;flex-direction:column;gap:2px}
+.prow{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;cursor:pointer}
+.prow:hover{background:var(--accent-soft)}
+.prow .av{width:30px;height:30px;font-size:11px}
+.prow b{font-size:13px;font-weight:600;display:block}
+.prow span{font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}
+.chain .prow{position:relative}
+.panel-actions{display:flex;gap:8px;margin-top:14px}
+.panel-actions .btn{flex:1;height:32px;font-size:13px}
+.hint{position:absolute;left:16px;bottom:14px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.85);padding:6px 10px;border-radius:6px;border:1px solid var(--border)}
+@media (max-width:900px){header h1{display:none} select{max-width:120px} #panel{width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Organization Chart</h1>
+  <span class="count" id="count"></span>
+  <div class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" placeholder="Search name, title, department…" autocomplete="off">
+    <div class="results" id="results"></div>
+  </div>
+  <select id="fDept" title="Highlight department"><option value="">All departments</option></select>
+  <select id="fLoc" title="Highlight location"><option value="">All locations</option></select>
+  <div class="btngroup">
+    <button class="btn" id="expandAll" title="Expand everyone">Expand all</button>
+    <button class="btn" id="collapse" title="Collapse to top level">Collapse</button>
+  </div>
+  <div class="btngroup">
+    <button class="btn" id="zoomOut" title="Zoom out">−</button>
+    <button class="btn" id="fit" title="Fit to screen">Fit</button>
+    <button class="btn" id="zoomIn" title="Zoom in">+</button>
+  </div>
+</header>
+<div id="viewport"><div id="stage"><svg id="wires"></svg></div><div class="hint">Drag to pan · scroll to zoom · click a card for details</div></div>
+<aside id="panel"></aside>
+
+<script>
+const RAW = [{"id": "Alvarado, Erwin", "m": "Chen, Yulin", "t": "R&D Technician II", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Cespedes, Alejandro", "m": "Mazariegos, Luis", "t": "Warehouse Associate", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Podliesnov, Valerii", "m": "Schlosser, Matthew", "t": "Repair Technician Tier 1", "d": "67 Product Care", "l": "HQ 2705"}, {"id": "Wen, Violet", "m": "Moghtadernejad, Sara", "t": "RA/QA Senior Specialist", "d": "26 Regulatory Affairs", "l": "Huntington Beach"}, {"id": "Barbera, Aldo", "m": "Kerby, James", "t": "Production Engineer Associate", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Wu, Wei-Ling", "m": "Kalbasi, Sina", "t": "Sr. Product Mgmt Spec, Connected Platforms", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Nguyen, Andrew", "m": "Moghtadernejad, Sara", "t": "Senior Manager, Quality Assurance", "d": "26 Regulatory Affairs", "l": "Huntington Beach"}, {"id": "Khachatourian, Arvin", "m": "Laws, Sheina", "t": "Facilities Operations Specialist", "d": "12 People Services", "l": "HQ 2705"}, {"id": "Smudde, Ted", "m": "Horwitz, Margo", "t": "Senior Product Marketing Manager", "d": "51 Marketing", "l": "HQ 2705"}, {"id": "Reed, Candy", "m": "Zhang, Yuni", "t": "Accounts Receivable Manager", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Buzzo, Van", "m": "Nguyen, Andrew", "t": "Quality Engineer", "d": "26 Regulatory Affairs", "l": "HQ 2705"}, {"id": "Services, People", "m": "Laws, Sheina", "t": "People Services Representative Candidate Life", "d": "12 People Services", "l": "REMOTE"}, {"id": "Johnson, Jihad", "m": "Kerby, James", "t": "Production Technician II", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Sullivan, Lauren", "m": "Clisham, Will", "t": "Customer Success Associate", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Robertson, Erika", "m": "vanDyck, John", "t": "Customer Service Director", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Purnell, Emily", "m": "Wang, Kevin", "t": "Clinical Implementation Specialist", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Zhang, Jing", "m": "Mansouri, Amir", "t": "Chief Technology Officer", "d": "66 Hardware Development", "l": "REMOTE"}, {"id": "Bassir, Hossein", "m": "Mansouri, Amir", "t": "Chief Product Officer", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Mansouri, Amir", "m": null, "t": "CEO", "d": "11 Executive Office", "l": "HQ 2705"}, {"id": "Barjasteh, Ehsan", "m": "Mansouri, Amir", "t": "Director Materials R&D", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Brouwer, Tyler", "m": "Bassir, Hossein", "t": "UX Content Strategist", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Haines, Esther", "m": "Buzzo, Van", "t": "Quality Control Associate", "d": "26 Regulatory Affairs", "l": "HQ 2705"}, {"id": "Yousefi, Haybert", "m": "Leal, Eric", "t": "Mechanical Engineer Associate", "d": "66 Hardware Development", "l": "HQ 2710"}, {"id": "Saenz, Luis", "m": "Robertson, Erika", "t": "Customer Service Technical Manager", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Clisham, Will", "m": "Burniston, Kevin", "t": "Customer Success Manager", "d": "45 Sales - Recurring Value", "l": "REMOTE"}, {"id": "Shegaonkar, Akash", "m": "Zhang, Jing", "t": "Senior Manager, Global Quality Systems", "d": "68 Quality Control", "l": "HQ 2705"}, {"id": "Cathell, Mary", "m": "O'Neal-jackson, Katie", "t": "Sr. Digital Sales Specialist", "d": "37 Sales - South East", "l": "REMOTE"}, {"id": "Molina, Sal", "m": "Saenz, Luis", "t": "Technical Support Agent", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Curtis, Jenny", "m": "Saenz, Luis", "t": "Technical Support Agent", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Ramirez, Eduardo", "m": "Leal, Eric", "t": "Mechanical Engineer Associate", "d": "66 Hardware Development", "l": "HQ 2710"}, {"id": "Horwitz, Margo", "m": "vanDyck, John", "t": "Director of Marketing, Americas", "d": "51 Marketing", "l": "HQ 2705"}, {"id": "Dibisch, Robert", "m": "Schlosser, Matthew", "t": "Repair Technician Tier 3", "d": "67 Product Care", "l": "HQ 2705"}, {"id": "Udarbe, Whitney", "m": "Saenz, Luis", "t": "Technical Support Agent", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Collins, Lee", "m": "Dubois, Christopher", "t": "Regional Sales Manager", "d": "39 Sales - North East", "l": "REMOTE"}, {"id": "Medford, Paula", "m": "O'Neal-jackson, Katie", "t": "Digital Sales Specialist", "d": "37 Sales - South East", "l": "REMOTE"}, {"id": "Lopez, Andrea", "m": "Wang, Kevin", "t": "Digital Print & Design Services Coordinator", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Ferrari, T.J.", "m": "Dubois, Christopher", "t": "National Manager of Strategic Partnerships", "d": "80 - SRM", "l": "REMOTE"}, {"id": "Huber, Glen", "m": "Pittman, Matt", "t": "Senior Digital Sales Specialist", "d": "47 Sales - West", "l": "REMOTE"}, {"id": "Robles, Denise", "m": "Kerby, James", "t": "Production Technician III", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Brown, Donya", "m": "Wang, Kevin", "t": "Customer Support Lead", "d": "15 Customer Service", "l": "REMOTE"}, {"id": "Ruiz, Rosario", "m": "Lai, Ivan", "t": "Operations Manager", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Arredondo, Francisco", "m": "Ding, Yixiang", "t": "Software Development Engineer", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Heimbuch, Mitch", "m": "Reina, Michael", "t": "Inside Sales Rep - Dental Laboratory Division", "d": "81 - Lab", "l": "REMOTE"}, {"id": "Laws, Sheina", "m": "vanDyck, John", "t": "Director, People Services - Americas", "d": "12 People Services", "l": "REMOTE"}, {"id": "Moghtadernejad, Sara", "m": "Mansouri, Amir", "t": "RA/QA Global Director, Mgt. Rep-PRRC", "d": "26 Regulatory Affairs", "l": "Huntington Beach"}, {"id": "Snaer, Angela", "m": "Brown, Donya", "t": "Sales Support Agent", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Meave, Abby", "m": "vanDyck, John", "t": "Senior Director of Global Supply Chain", "d": "19 Supply Chain", "l": "HQ 2705"}, {"id": "Torres Marin, Vladimir", "m": "Kerby, James", "t": "Production Technician II", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Johnson, Zach", "m": "Capek, Jindra", "t": "Senior Manufacturing Engineer - Materials", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "O'Neal-jackson, Katie", "m": "Dubois, Christopher", "t": "Area Sales Director", "d": "37 Sales - South East", "l": "REMOTE"}, {"id": "vanDyck, John", "m": "Kreidler, Erich", "t": "General Manager - Americas", "d": "11 Executive Office", "l": "HQ 2705"}, {"id": "Vasquez, Noelia", "m": "Ding, Yixiang", "t": "Principal Quality Assurance Engineer", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Dubois, Christopher", "m": "vanDyck, John", "t": "Head of Sales", "d": "80 - SRM", "l": "REMOTE"}, {"id": "Ye, Shukun", "m": "Zhang, Jing", "t": "Hardware Engineering Program Specialist", "d": "66 Hardware Development", "l": "HQ 2710"}, {"id": "Kreidler, Erich", "m": "Mansouri, Amir", "t": "President", "d": "11 Executive Office", "l": "HQ 2705"}, {"id": "Motegi, Kaz", "m": "Buzzo, Van", "t": "Quality Control Associate", "d": "26 Regulatory Affairs", "l": "HQ 2705"}, {"id": "Bennett, Leslie", "m": "Clisham, Will", "t": "Customer Success Associate", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Hughes, Wesley", "m": "O'Neal-jackson, Katie", "t": "Sr. Digital Sales Specialist", "d": "37 Sales - South East", "l": "REMOTE"}, {"id": "Thomas, Brock", "m": "Kreidler, Erich", "t": "Director, Strategic Business Development", "d": "44 Sales - Executive", "l": "REMOTE"}, {"id": "Li, Songwei", "m": "Blackwell, George", "t": "Hardware Engineering Project Manager", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Subramanian, Sarada", "m": "Ferrari, T.J.", "t": "Project Manager, Sales", "d": "80 - SRM", "l": "HQ 2705"}, {"id": "Espinoza, Byron", "m": "Schlosser, Matthew", "t": "Repair Technician Tier 3", "d": "67 Product Care", "l": "HQ 2705"}, {"id": "Ding, Yixiang", "m": "Hajjar, Elias", "t": "Enterprise Software Architect", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Gonzalez, Daniel", "m": "Barjasteh, Ehsan", "t": "Scientist IIA", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Cox, John", "m": "Kreidler, Erich", "t": "Chief Growth Officer", "d": "44 Sales - Executive", "l": "REMOTE"}, {"id": "Griffin, Thomas", "m": "Dubois, Christopher", "t": "Manager, Commercial Operations", "d": "23 Business Intelligence", "l": "REMOTE"}, {"id": "Galindo, Natalia", "m": "Horwitz, Margo", "t": "Sample Print Production Lead", "d": "51 Marketing", "l": "HQ 2710"}, {"id": "Ruiz-Valdenegro, Abel", "m": "Shegaonkar, Akash", "t": "Quality Supervisor", "d": "68 Quality Control", "l": "HQ 2705"}, {"id": "Laurino, Ferdinand", "m": "Blackwell, George", "t": "Hardware Product Lead", "d": "64 Product Management", "l": "HQ 2705"}, {"id": "Seetoo-Ronk, Barry", "m": "Burniston, Kevin", "t": "Digital Technology Advisor/Trainer/Workforce", "d": "16 Professional Education", "l": "REMOTE"}, {"id": "Schlosser, Matthew", "m": "Capek, Jindra", "t": "Product Care Manager (US Region)", "d": "67 Product Care", "l": "HQ 2705"}, {"id": "Molina, Alejandra", "m": "vanDyck, John", "t": "Regional Sales Manager - LATAM", "d": "48 Sales - Mexico", "l": "REMOTE"}, {"id": "Goss, Blakeslee", "m": "Saenz, Luis", "t": "Product Specialist", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Lorich, Mark", "m": "Kalbasi, Sina", "t": "Product Manager, AI Products", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Simons, Dominick", "m": "Gomez, Miguel", "t": "DSO Technical Lead", "d": "15 Customer Service", "l": "REMOTE"}, {"id": "Wang, Kevin", "m": "Robertson, Erika", "t": "Continuous Improvement Manager", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Pang, Will", "m": "Pittman, Matt", "t": "Senior Digital Sales Specialist", "d": "47 Sales - West", "l": "REMOTE"}, {"id": "Blackwell, George", "m": "Bassir, Hossein", "t": "Senior Product Management Principal", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Leal, Eric", "m": "Zhang, Jing", "t": "Director of Hardware Engineering", "d": "66 Hardware Development", "l": "HQ 2710"}, {"id": "Enriquez, Joey", "m": "Mazariegos, Luis", "t": "Warehouse Associate", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Thompson, Matthew", "m": "Mansouri, Amir", "t": "Vice President of Marketing", "d": "53 Marketing - Global", "l": "REMOTE"}, {"id": "Markin, Becky", "m": "Blackwell, George", "t": "Product Operations Manager", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Lake, Michael", "m": "O'Neal-jackson, Katie", "t": "Area Sales Manager, Multi-site, Eastern US", "d": "41 Sales - DSO", "l": "REMOTE"}, {"id": "Hein, Derek", "m": "Dubois, Christopher", "t": "Area Sales Director", "d": "49 Sales - Canada", "l": "REMOTE"}, {"id": "Reimuth, Bastian", "m": "Kalbasi, Sina", "t": "Product Management Specialist, Digital Growth", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Cohen, Edward", "m": "Kreidler, Erich", "t": "Strategic Advisor", "d": "11 Executive Office", "l": "REMOTE"}, {"id": "Bane, Bradley", "m": "Dubois, Christopher", "t": "Enterprise Project Manager", "d": "41 Sales - DSO", "l": "REMOTE"}, {"id": "Green, Sheldon", "m": "Burniston, Kevin", "t": "SprintRay University Lead", "d": "38 Customer Experience", "l": "HQ 2705"}, {"id": "Lewis, Leah", "m": "Laws, Sheina", "t": "Senior Manager, People Services", "d": "12 People Services", "l": "HQ 2705"}, {"id": "Villalvazo, Lyzette", "m": "Schlosser, Matthew", "t": "Repair Technician Tier 2", "d": "67 Product Care", "l": "HQ 2705"}, {"id": "Espinoza, Otto", "m": "Schlosser, Matthew", "t": "Repair Technician Tier 2", "d": "67 Product Care", "l": "HQ 2705"}, {"id": "Chen, Yulin", "m": "Barjasteh, Ehsan", "t": "Principal Scientist", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Briseno, Stephanie", "m": "Schlosser, Matthew", "t": "Repair Technician Tier 1", "d": "67 Product Care", "l": "HQ 2705"}, {"id": "Perera, Kevin", "m": "Brenner, Sean", "t": "Senior Manager Graphic Design", "d": "53 Marketing - Global", "l": "REMOTE"}, {"id": "Robalino, Alfredo", "m": "Hajjar, Elias", "t": "Information Technology Manager", "d": "27 IT/Infrastructure", "l": "HQ 2705"}, {"id": "Patel, Aayush", "m": "Bassir, Hossein", "t": "Hardware Engineering Manager", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Mendoza, Ivan", "m": "Simons, Dominick", "t": "Technical Support Agent", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Hajjar, Elias", "m": "Zhang, Jing", "t": "VP of Technology", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "A Taylor, Lucas", "m": "Clisham, Will", "t": "Account Specialist 1", "d": "45 Sales - Recurring Value", "l": "REMOTE"}, {"id": "Kalbasi, Sina", "m": "Bassir, Hossein", "t": "Senior Product Management Principal", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Spence, Mike", "m": "Simons, Dominick", "t": "Technical Support Agent", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Tkachev, Yury", "m": "Ding, Yixiang", "t": "Agile Scrum Master", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Duda, John", "m": "Collins, Lee", "t": "Digital Sales Specialist", "d": "39 Sales - North East", "l": "REMOTE"}, {"id": "Sussan, Michelle", "m": "Mazariegos, Luis", "t": "Warehouse Associate", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Alihadi, Farhad", "m": "Kerby, James", "t": "Production Technician II", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Ye, Hang", "m": "Zhang, Jing", "t": "Research Scientist", "d": "66 Hardware Development", "l": "HQ 2710"}, {"id": "Cox, Justin", "m": "Yang, Sheila", "t": "Staff Accountant", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Feldman, Bruce", "m": "O'Neal-jackson, Katie", "t": "Sr. Digital Sales Specialist", "d": "37 Sales - South East", "l": "REMOTE"}, {"id": "Nicol, Mallory", "m": "Mansouri, Amir", "t": "Director of Brand Communication", "d": "53 Marketing - Global", "l": "HQ 2705"}, {"id": "Sarjeant, Chris", "m": "O'Neal-jackson, Katie", "t": "Digital Sales Specialist", "d": "37 Sales - South East", "l": "REMOTE"}, {"id": "Dalpiaz, Joseph", "m": "Pittman, Matt", "t": "Digital Sales Specialist", "d": "47 Sales - West", "l": "REMOTE"}, {"id": "Lopez Villagran, Andy", "m": "Kerby, James", "t": "Production Technician I", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Abdollahzadeh, Leila", "m": "Hassanpour, Mana", "t": "R&D Technician III", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Bian, Omar", "m": "Kerby, James", "t": "Production Technician I", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Chang, Roy", "m": "Kreidler, Erich", "t": "Vice President of Finance", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Dowdy, Jessica", "m": "Clisham, Will", "t": "Customer Success Associate", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Medina, Kevin", "m": "Moghtadernejad, Sara", "t": "RA/QA Associate", "d": "26 Regulatory Affairs", "l": "Huntington Beach"}, {"id": "Pena O'Byrne, Eric", "m": "Clisham, Will", "t": "Account Specialist 1", "d": "45 Sales - Recurring Value", "l": "REMOTE"}, {"id": "Barsoum, Meena", "m": "Cox, John", "t": "Global Head of Clinical Strategy", "d": "44 Sales - Executive", "l": "REMOTE"}, {"id": "Li, Yifan", "m": "Ding, Yixiang", "t": "Software Development Engineer", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Yu, Zhengwei", "m": "Patel, Aayush", "t": "Applications Engineer", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Spezialy, Roggero", "m": "Saenz, Luis", "t": "Technical Support Agent", "d": "15 Customer Service", "l": "HQ 2705"}, {"id": "Maldonado, Maria", "m": "Kerby, James", "t": "Production Technician I", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Brenner, Sean", "m": "Bassir, Hossein", "t": "Global Head of Digital Creative", "d": "53 Marketing - Global", "l": "HQ 2705"}, {"id": "Turner, Sam", "m": "Collins, Lee", "t": "Digital Sales Specialist", "d": "39 Sales - North East", "l": "REMOTE"}, {"id": "Marino, Luca", "m": "Horwitz, Margo", "t": "Brand Experience Specialist", "d": "51 Marketing", "l": "HQ 2705"}, {"id": "Tizon, Randy", "m": "Kerby, James", "t": "Production Technician I", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Mercado Alquisira, Emanuel", "m": "Kerby, James", "t": "Production Technician II", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Teng, An-Chieh", "m": "Barjasteh, Ehsan", "t": "Materials Project Manager", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Robertson, Ryan", "m": "Marino, Luca", "t": "Brands and Events Intern", "d": "51 Marketing", "l": "HQ 2705"}, {"id": "Simon, Samuel", "m": "Simons, Dominick", "t": "Technical Support Agent", "d": "15 Customer Service", "l": "REMOTE"}, {"id": "Jacobellis, Michelle", "m": "Collins, Lee", "t": "Digital Sales Specialist", "d": "39 Sales - North East", "l": "REMOTE"}, {"id": "Sanchez, Christian", "m": "Mazariegos, Luis", "t": "Warehouse Associate Temp", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Seale, Casey", "m": "Bassir, Hossein", "t": "Director, Product Marketing", "d": "53 Marketing - Global", "l": "HQ 2705"}, {"id": "Reina, Michael", "m": "vanDyck, John", "t": "Director, Dental Lab Services", "d": "81 - Lab", "l": "REMOTE"}, {"id": "Rita, Michael", "m": "Pittman, Matt", "t": "Sr. Digital Sales Specialist", "d": "47 Sales - West", "l": "REMOTE"}, {"id": "Burniston, Kevin", "m": "vanDyck, John", "t": "Director, Customer Experience", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Cespedes, Robert", "m": "Kerby, James", "t": "Production Technician I", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Vandenkolk, Blake", "m": "Pittman, Matt", "t": "Digital Sales Specialist", "d": "47 Sales - West", "l": "REMOTE"}, {"id": "Gomez, Miguel", "m": "Robertson, Erika", "t": "Senior Manager Customer Support", "d": "15 Customer Service", "l": "REMOTE"}, {"id": "De La Rocha, Jason", "m": "Clisham, Will", "t": "Account Specialist 1", "d": "45 Sales - Recurring Value", "l": "REMOTE"}, {"id": "Feldman, Travis", "m": "Clisham, Will", "t": "Customer Success Associate", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Reib, Jeff", "m": "O'Neal-jackson, Katie", "t": "Digital Sales Specialist", "d": "37 Sales - South East", "l": "REMOTE"}, {"id": "Hassanpour, Mana", "m": "Gonzalez, Daniel", "t": "R&D Process Engineer Technician", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Funes, Magan", "m": "Yu, Zhengwei", "t": "Print Technician, Workflow Temp", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Kim, Yoobin", "m": "Brouwer, Tyler", "t": "UI/UX Designer", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Safari, Hadi", "m": "Mansouri, Amir", "t": "Executive Assistant & Content Specialist", "d": "11 Executive Office", "l": "HQ 2705"}, {"id": "Miller, David", "m": "Collins, Lee", "t": "Digital Sales Specialist", "d": "39 Sales - North East", "l": "REMOTE"}, {"id": "Soloski, Joe", "m": "Collins, Lee", "t": "Digital Sales Specialist", "d": "39 Sales - North East", "l": "REMOTE"}, {"id": "Doherty, Teddy", "m": "Leal, Eric", "t": "Industrial Design Intern", "d": "66 Hardware Development", "l": "HQ 2710"}, {"id": "Pittman, Matt", "m": "Dubois, Christopher", "t": "Regional Sales Manager", "d": "47 Sales - West", "l": "REMOTE"}, {"id": "McPheron, Alton", "m": "Kerby, James", "t": "Production Technician I", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Davis, Arrianne", "m": "Ferrari, T.J.", "t": "Operations Analyst", "d": "80 - SRM", "l": "REMOTE"}, {"id": "Grizzelle, Amber", "m": "Ruiz, Rosario", "t": "Global Logistics Specialist", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Woll, Tracy", "m": "Kerby, James", "t": "Production Technician I", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Martinez, Emiliano", "m": "Kerby, James", "t": "Production Technician I Temp", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Lai, Ivan", "m": "vanDyck, John", "t": "VP - Value Chain & Sourcing", "d": "19 Supply Chain", "l": "HQ 2705"}, {"id": "Tai, Calvin", "m": "Ding, Yixiang", "t": "Software Development Engineer Intern", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Ji, Sophia", "m": "Yang, Sheila", "t": "Staff Accountant, Finance Automation & AI", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Vinod, Rhesha", "m": "Ding, Yixiang", "t": "Software Development Engineer Intern", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Sawant, Rajat", "m": "Ding, Yixiang", "t": "Software Development Engineer Intern", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Oberhammer, Casey", "m": "Clisham, Will", "t": "Customer Success Associate", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Keary, Kyle", "m": "O'Neal-jackson, Katie", "t": "Digital Sales Specialist", "d": "37 Sales - South East", "l": "REMOTE"}, {"id": "Thanh, Andrew", "m": "Nguyen, Andrew", "t": "Quality Assurance Engineer", "d": "26 Regulatory Affairs", "l": "HQ 2705"}, {"id": "Ortiz, Rosseline", "m": "Clisham, Will", "t": "Customer Success Associate", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Aragon, Julian", "m": "Kerby, James", "t": "Production Technician I Temp", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Flores, Leonardo", "m": "Xu, Yinghao", "t": "R&D Technician I", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Lin, Victoria", "m": "Chang, Roy", "t": "Senior Financial Analyst", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Santiago, Radames", "m": "Laws, Sheina", "t": "HR Data & Compliance Specialist", "d": "12 People Services", "l": "REMOTE"}, {"id": "Houbeck, John", "m": "Clisham, Will", "t": "Account Specialist 1", "d": "45 Sales - Recurring Value", "l": "REMOTE"}, {"id": "Gutierrez, Marcus", "m": "Mazariegos, Luis", "t": "Warehouse Associate Temp", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Hakakian, Payam", "m": "Lai, Ivan", "t": "Procurement Manager", "d": "19 Supply Chain", "l": "HQ 2705"}, {"id": "Li, Manqi", "m": "Ye, Shukun", "t": "Hardware Engineering Program Specialist", "d": "66 Hardware Development", "l": "HQ 2710"}, {"id": "Weary, Jekia", "m": "Ferrari, T.J.", "t": "Operations Analyst", "d": "80 - SRM", "l": "REMOTE"}, {"id": "Ketel, Brandon", "m": "Ding, Yixiang", "t": "Software Engineer Intern", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Chowdhary, Jus", "m": "Laws, Sheina", "t": "Senior People & Culture Business Partner", "d": "12 People Services", "l": "HQ 2705"}, {"id": "Yang, Sheila", "m": "Zhang, Yuni", "t": "Accounting Manager", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Hoffman, Nate", "m": "Collins, Lee", "t": "Digital Sales Specialist", "d": "39 Sales - North East", "l": "REMOTE"}, {"id": "Diaz, Cristian", "m": "Mazariegos, Luis", "t": "Warehouse Receiver", "d": "17 Supply Chain - Warehouse", "l": "HQ 2710"}, {"id": "Kerby, James", "m": "Capek, Jindra", "t": "Production Supervisor", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Young, Noah", "m": "Lai, Ivan", "t": "Senior Global Demand Planner", "d": "19 Supply Chain", "l": "HQ 2705"}, {"id": "Buzhynskaya, Dasha", "m": "Clisham, Will", "t": "Customer Success Associate", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Blake, Anthony", "m": "Reed, Candy", "t": "Accounts Receivable Specialist", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Capek, Jindra", "m": "vanDyck, John", "t": "Sr. Director, Manufacturing - Americas", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Murray, Avery", "m": "Patel, Aayush", "t": "Project Management Intern", "d": "64 Product Management", "l": "HQ 2705"}, {"id": "McGuire, Jen", "m": "Burniston, Kevin", "t": "Com. Enablement & Prof. Relationship Manager", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Sinha, Ritik", "m": "Kalbasi, Sina", "t": "Product Management Specialist", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Warren, Sam", "m": "Clisham, Will", "t": "Account Specialist 1", "d": "45 Sales - Recurring Value", "l": "REMOTE"}, {"id": "Aranda, Angel", "m": "Kerby, James", "t": "Production Technician I", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Xu, Yinghao", "m": "Barjasteh, Ehsan", "t": "Senior Material Scientist", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Ingram, Casey", "m": "Pittman, Matt", "t": "Digital Sales Specialist", "d": "47 Sales - West", "l": "REMOTE"}, {"id": "Nicklos, Zachary", "m": "Pittman, Matt", "t": "Territory Sales Representative - Dental", "d": "41 Sales - DSO", "l": "REMOTE"}, {"id": "Lee, Grace", "m": "Zhang, Yuni", "t": "Senior AP Specialist", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Ferry, Joseph", "m": "Mansouri, Amir", "t": "Global Digital Marketing Director", "d": "53 Marketing - Global", "l": "HQ 2705"}, {"id": "Li, Jiewei", "m": "Zhang, Jing", "t": "Software Development Director", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Cambridge, Brittany", "m": "Collins, Lee", "t": "Digital Sales Specialist", "d": "39 Sales - North East", "l": "REMOTE"}, {"id": "Abdollahzadeh, Maryam", "m": "Gonzalez, Daniel", "t": "R&D Technician II", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Romero, Martin", "m": "Kerby, James", "t": "Production Technician I Temp", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Foster, Darsh", "m": "Clisham, Will", "t": "Customer Success Associate", "d": "38 Customer Experience", "l": "REMOTE"}, {"id": "Harrison, Robert", "m": "Ferry, Joseph", "t": "Marketing Automation & Events Intern", "d": "53 Marketing - Global", "l": "HQ 2705"}, {"id": "Ung, Felix", "m": "Horwitz, Margo", "t": "Marketing Designer", "d": "51 Marketing", "l": "HQ 2705"}, {"id": "Ramirez, Veronica", "m": "Kerby, James", "t": "Production Technician I Temp", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Lara, Tony", "m": "Kerby, James", "t": "Production Technician I Temp", "d": "62 Materials R&D", "l": "HQ 2705"}, {"id": "Aguayo, Jose", "m": "Kerby, James", "t": "Production Technician I Temp", "d": "24 Material Operations", "l": "HQ 2705"}, {"id": "Huang, George", "m": "Leal, Eric", "t": "Mechanical Engineer Intern", "d": "66 Hardware Development", "l": "HQ 2705"}, {"id": "Hernandez, Hortencia", "m": "Mazariegos, Luis", "t": "Warehouse Associate Temp", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Zhang, Yuni", "m": "Chang, Roy", "t": "Finance Controller", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Ko, Yumi", "m": "Chang, Roy", "t": "Finance AI & Automation Intern", "d": "14 Finance", "l": "HQ 2705"}, {"id": "Mazariegos, Luis", "m": "Ruiz, Rosario", "t": "Warehouse Supervisor", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Torres, George", "m": "Ruiz, Rosario", "t": "Warehouse Associate Temp", "d": "17 Supply Chain - Warehouse", "l": "HQ 2705"}, {"id": "Ramos, Angel", "m": "Kerby, James", "t": "Production Technician I Temp", "d": "24 Material Operations", "l": "HQ 2710"}, {"id": "Gaspar, Kimberly", "m": "Barjasteh, Ehsan", "t": "R&D Technician I", "d": "62 Materials R&D", "l": "Huntington Beach"}, {"id": "Patel, Peeyush", "m": "Ding, Yixiang", "t": "Software Development Engineer", "d": "65 Software Development", "l": "HQ 2710"}, {"id": "Lee, Erin", "m": "Markin, Becky", "t": "Project Management Intern", "d": "64 Product Management", "l": "HQ 2710"}, {"id": "Norov, Jamie", "m": "Brenner, Sean", "t": "Creative Content Manager", "d": "53 Marketing - Global", "l": "HQ 2705"}, {"id": "Fernandez-Novoa Coutinho, Sofia", "m": "Nicol, Mallory", "t": "Social Media Manager / Brand Storyist", "d": "53 Marketing - Global", "l": "HQ 2705"}, {"id": "Bekarian, Kevork", "m": "Hajjar, Elias", "t": "IT Manager \u2013 Enterprise Systems & ERP Migrati", "d": "27 IT/Infrastructure", "l": "HQ 2705"}, {"id": "Mohammed, Shabbir", "m": "Saenz, Luis", "t": "Customer Support Technical Representative", "d": "15 Customer Service", "l": "INDIA"}, {"id": "Lanka, Sunita", "m": "Laws, Sheina", "t": "INT - Global Operations Leader", "d": "12 People Services", "l": "INDIA"}, {"id": "Vanam, Vandana", "m": "Burniston, Kevin", "t": "Learning Operations Assistant", "d": "38 Customer Experience", "l": "INDIA"}, {"id": "Purificacao, Niko", "m": "Hein, Derek", "t": "Digital Specialist", "d": "49 Sales - Canada", "l": "CANADA"}, {"id": "Muppala, Hemanth Kumar", "m": "Shegaonkar, Akash", "t": "Test Engineer Embedded Systems", "d": "68 Quality Control", "l": "INDIA"}, {"id": "Dharavathu, Vikas", "m": "Griffin, Thomas", "t": "PBI Developer", "d": "23 Business Intelligence", "l": "INDIA"}, {"id": "Singh, Gaurav", "m": "Brown, Donya", "t": "Sales Operations Representative", "d": "15 Customer Service", "l": "INDIA"}, {"id": "Rangepalli, Bharath", "m": "Brenner, Sean", "t": "Video Editor", "d": "53 Marketing - Global", "l": "INDIA"}, {"id": "Vishnubhatla, Sai", "m": "Griffin, Thomas", "t": "Salesforce Developer", "d": "23 Business Intelligence", "l": "INDIA"}, {"id": "Tornato, Gerald", "m": "Hein, Derek", "t": "INT - Strategic Relationship Manager", "d": "49 Sales - Canada", "l": "CANADA"}, {"id": "Punna, Shashidhar", "m": "Hakakian, Payam", "t": "Procurement Specialist", "d": "19 Supply Chain", "l": "INDIA"}, {"id": "Boyina, Bhargav", "m": "Brown, Donya", "t": "Sales Operations Representative", "d": "15 Customer Service", "l": "INDIA"}, {"id": "Kanuri, Sri Harsha", "m": "Brenner, Sean", "t": "Graphic Designer", "d": "51 Marketing", "l": "INDIA"}, {"id": "Shegaonkar, Priyanka", "m": "Brown, Donya", "t": "Sales Operations Representative", "d": "15 Customer Service", "l": "INDIA"}, {"id": "Jalla, Viswaswara Rao", "m": "Shegaonkar, Akash", "t": "Junior Test Engineer", "d": "68 Quality Control", "l": "INDIA"}, {"id": "Raavi, Akhil Sai", "m": "Yang, Sheila", "t": "Junior Accountant", "d": "14 Finance", "l": "INDIA"}, {"id": "HR, Sumanth", "m": "Shegaonkar, Akash", "t": "Test Engineer Embedded Systems", "d": "68 Quality Control", "l": "INDIA"}, {"id": "Martin, Derek", "m": "Hein, Derek", "t": "INT - Strategic Relationship Manager", "d": "49 Sales - Canada", "l": "CANADA"}, {"id": "Gholba, Amruta", "m": "Griffin, Thomas", "t": "Sales Operations Analyst", "d": "23 Business Intelligence", "l": "INDIA"}, {"id": "Mendoza Delgado, Antonio", "m": "Molina, Alejandra", "t": "INT - Digital Sales Specialist", "d": "48 Sales - Mexico", "l": "REMOTE"}, {"id": "Karbouzian, Daniel", "m": "Hein, Derek", "t": "INT - Digital Sales Specialist", "d": "49 Sales - Canada", "l": "CANADA"}, {"id": "Cameras, Aaron", "m": "Saenz, Luis", "t": "INT-Customer Support Agent", "d": "15 Customer Service", "l": "REMOTE"}, {"id": "Perez Garcia, Laura", "m": "Wang, Kevin", "t": "INT - Customer Supp. & Operations Coordinator", "d": "15 Customer Service", "l": "REMOTE"}, {"id": "De Freitas, Carlos", "m": "Barbosa, Paula", "t": "INT - Digital Sales Specialist", "d": "74 Sales - Brazil", "l": "REMOTE"}, {"id": "Earpedu, Jaswanth Kumar Reddy", "m": "Rangepalli, Bharath", "t": "Video Editor and Motion Graphics Designer", "d": "53 Marketing - Global", "l": "INDIA"}, {"id": "Henn, Jaqueline", "m": "Barbosa, Paula", "t": "INT - Digital Specialist", "d": "74 Sales - Brazil", "l": "REMOTE"}, {"id": "Barbosa, Paula", "m": "vanDyck, John", "t": "Country Manager - Brazil", "d": "74 Sales - Brazil", "l": "REMOTE"}, {"id": "Contreras, Moises", "m": "Saenz, Luis", "t": "INT - Technical Support Agent", "d": "15 Customer Service", "l": "REMOTE"}, {"id": "Dasari, Vinay", "m": "Rangepalli, Bharath", "t": "Video Editor and Motion Graphics Designer", "d": "53 Marketing - Global", "l": "INDIA"}, {"id": "PVS, Veera Bhadra", "m": "Lee, Grace", "t": "Junior Accountant", "d": "14 Finance", "l": "INDIA"}, {"id": "Velazquez, Uriel", "m": "Saenz, Luis", "t": "INT - Technical Support Agent", "d": "15 Customer Service", "l": "REMOTE"}, {"id": "Singh, Priyanka", "m": "Wang, Kevin", "t": "Learning Operations and Automation Associate", "d": "15 Customer Service", "l": "INDIA"}, {"id": "Reyes Palomino, Victor", "m": "Saenz, Luis", "t": "INT - Technical Support Agent", "d": "15 Customer Service", "l": "REMOTE"}];
+
+// ---------- model ----------
+const byId = new Map();
+RAW.forEach(r => byId.set(r.id, {...r, kids:[], parent:null, open:false}));
+let root = null;
+byId.forEach(n => {
+  const p = n.m && byId.get(n.m);
+  if (p) { p.kids.push(n); n.parent = p; } else if (!root || n.t === 'CEO') root = n;
+});
+const prettyName = id => { const i = id.indexOf(','); return i < 0 ? id : (id.slice(i+1).trim() + ' ' + id.slice(0,i).trim()); };
+const initials = n => { const p = n.disp.split(/\s+/).filter(Boolean); return ((p[0]||'')[0] + ((p.length>1?p[p.length-1]:'')[0]||'')).toUpperCase(); };
+const deptLabel = d => d.replace(/^\d+\s+/, '');
+byId.forEach(n => { n.disp = prettyName(n.id); n.ini = initials(n); });
+function sortKids(n){ n.kids.sort((a,b)=> (b.kids.length>0)-(a.kids.length>0) || a.disp.localeCompare(b.disp)); n.kids.forEach(sortKids); }
+sortKids(root);
+function total(n){ return n._tot ??= n.kids.reduce((s,k)=>s+1+total(k),0); }
+function depth(n){ let d=0; while(n.parent){n=n.parent;d++;} return d; }
+
+// department colours: evenly spaced hues, assigned in sorted order
+const depts = [...new Set(RAW.map(r=>r.d))].sort((a,b)=>deptLabel(a).localeCompare(deptLabel(b)));
+const locs = [...new Set(RAW.map(r=>r.l))].sort();
+const deptColor = {};
+depts.forEach((d,i)=>{ const h = Math.round((i*137.508)%360); deptColor[d] = `hsl(${h} 55% 45%)`; });
+
+document.getElementById('count').textContent = `${byId.size} people · ${depts.length} departments`;
+const fDept = document.getElementById('fDept'), fLoc = document.getElementById('fLoc');
+depts.forEach(d=>fDept.add(new Option(deptLabel(d), d)));
+locs.forEach(l=>fLoc.add(new Option(l, l)));
+
+// ---------- layout ----------
+const W = 228, H = 84, HG = 22, VG = 56, STACK_GAP = 14, STACK_INDENT = 26;
+// Managers spread horizontally; individual contributors (no reports) stack vertically under their manager.
+function measure(n){
+  n.slots = [];
+  if (!n.open || !n.kids.length){ n.w = W; n.h = H; return; }
+  const mgrs = n.kids.filter(k=>k.kids.length), ics = n.kids.filter(k=>!k.kids.length);
+  mgrs.forEach(k=>{ measure(k); n.slots.push({type:'tree', node:k, w:k.w, h:k.h}); });
+  if (ics.length){
+    ics.forEach(k=>{ k.slots=[]; k.w=W; k.h=H; });
+    n.slots.push({type:'stack', nodes:ics, w:W+STACK_INDENT, h: ics.length*H + (ics.length-1)*STACK_GAP});
+  }
+  const sw = n.slots.reduce((s,x)=>s+x.w,0) + HG*(n.slots.length-1);
+  n.w = Math.max(W, sw);
+  n.h = H + VG + Math.max(...n.slots.map(s=>s.h));
+}
+function place(n, x, y, out){
+  n.x = x + (n.w - W)/2; n.y = y; out.push(n);
+  if (!n.slots.length) return;
+  const sw = n.slots.reduce((s,x)=>s+x.w,0) + HG*(n.slots.length-1);
+  let cx = x + (n.w - sw)/2; const cy = y + H + VG;
+  n.slotPos = [];
+  n.slots.forEach(s=>{
+    if (s.type==='tree'){ place(s.node, cx, cy, out); n.slotPos.push({type:'tree', topX: s.node.x + W/2, topY: cy}); }
+    else {
+      const sx = cx + STACK_INDENT;
+      s.nodes.forEach((k,i)=>{ k.x = sx; k.y = cy + i*(H+STACK_GAP); k.slotPos=null; out.push(k); });
+      n.slotPos.push({type:'stack', railX: cx + 10, topY: cy, ys: s.nodes.map(k=>k.y + H/2), cardX: sx});
+    }
+    cx += s.w + HG;
+  });
+}
+
+// ---------- render ----------
+const stage = document.getElementById('stage'), wires = document.getElementById('wires'), vp = document.getElementById('viewport');
+const cards = new Map();
+let selected = null, visible = [];
+
+function makeCard(n){
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.style.setProperty('--dc', deptColor[n.d]);
+  el.innerHTML = `<div class="av">${n.ini}</div><div class="info"><div class="nm" title="${esc(n.disp)}">${esc(n.disp)}</div><div class="tt" title="${esc(n.t)}">${esc(n.t)}</div><div class="dp">${esc(deptLabel(n.d))} · ${esc(n.l)}</div></div>`;
+  if (n.kids.length){
+    const t = document.createElement('button');
+    t.className = 'tog'; t.title = 'Show / hide direct reports';
+    t.addEventListener('click', e=>{ e.stopPropagation(); n.open = !n.open; render(n); });
+    t.addEventListener('mousedown', e=>e.stopPropagation());
+    el.appendChild(t); el._tog = t;
+  }
+  el.addEventListener('click', ()=>{ if (!moved) select(n); });
+  stage.appendChild(el); cards.set(n, el);
+  return el;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function render(anchor){
+  // keep the anchor card visually still when expanding/collapsing
+  let before = null;
+  if (anchor && anchor.x!=null) before = toScreen(anchor.x, anchor.y);
+  measure(root);
+  visible = []; place(root, 0, 0, visible);
+  const vis = new Set(visible);
+  cards.forEach((el,n)=>{ if (!vis.has(n)) el.style.display='none'; });
+  let d = '';
+  visible.forEach(n=>{
+    const el = cards.get(n) || makeCard(n);
+    el.style.display = ''; el.style.left = n.x+'px'; el.style.top = n.y+'px';
+    if (el._tog){ el._tog.classList.toggle('open', n.open); el._tog.innerHTML = n.open ? '−' : `${n.kids.length}`; }
+    if (n.open && n.slotPos){
+      const px = n.x + W/2, py = n.y + H, mid = py + VG/2;
+      d += `M${px},${py}V${mid}`;
+      const xs = n.slotPos.map(s=> s.type==='tree' ? s.topX : s.railX);
+      if (xs.length) d += `M${Math.min(px,...xs)},${mid}H${Math.max(px,...xs)}`;
+      n.slotPos.forEach(s=>{
+        if (s.type==='tree') d += `M${s.topX},${mid}V${s.topY}`;
+        else {
+          const last = s.ys[s.ys.length-1];
+          d += `M${s.railX},${mid}V${last}`;
+          s.ys.forEach(y=> d += `M${s.railX},${y}H${s.cardX}`);
+        }
+      });
+    }
+  });
+  const maxX = Math.max(...visible.map(n=>n.x+W)), maxY = Math.max(...visible.map(n=>n.y+H));
+  wires.setAttribute('width', maxX+40); wires.setAttribute('height', maxY+40);
+  wires.innerHTML = `<path d="${d}"/>`;
+  applyFilter();
+  if (before){ const after = toScreen(anchor.x, anchor.y); tx += before.x-after.x; ty += before.y-after.y; applyT(); }
+}
+
+// ---------- pan / zoom ----------
+let tx = 0, ty = 0, sc = 1, moved = false;
+function applyT(){ stage.style.transform = `translate(${tx}px,${ty}px) scale(${sc})`; }
+function toScreen(x,y){ return {x: x*sc+tx, y: y*sc+ty}; }
+function zoomAt(f, cx, cy){
+  const ns = Math.min(2, Math.max(.08, sc*f)); f = ns/sc;
+  tx = cx - (cx-tx)*f; ty = cy - (cy-ty)*f; sc = ns; applyT();
+}
+function fit(){
+  const r = vp.getBoundingClientRect(), pw = panel.classList.contains('open') ? panel.offsetWidth : 0;
+  const minX = Math.min(...visible.map(n=>n.x)), maxX = Math.max(...visible.map(n=>n.x+W));
+  const maxY = Math.max(...visible.map(n=>n.y+H)), w = maxX-minX, h = maxY;
+  sc = Math.min(1.1, Math.max(.08, Math.min((r.width-pw-80)/w, (r.height-80)/h)));
+  tx = Math.max(40, (r.width-pw - w*sc)/2) - minX*sc; ty = 40; applyT();
+}
+function centerOn(n){
+  const r = vp.getBoundingClientRect(), pw = panel.classList.contains('open') ? panel.offsetWidth : 0;
+  if (sc < .7) sc = .9;
+  tx = (r.width-pw)/2 - (n.x+W/2)*sc; ty = r.height/3 - (n.y+H/2)*sc; applyT();
+}
+let drag = null;
+vp.addEventListener('mousedown', e=>{ if (e.button) return; drag = {x:e.clientX, y:e.clientY, tx, ty}; moved = false; vp.classList.add('dragging'); });
+window.addEventListener('mousemove', e=>{ if (!drag) return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y; if (Math.abs(dx)+Math.abs(dy)>4) moved = true; tx=drag.tx+dx; ty=drag.ty+dy; applyT(); });
+window.addEventListener('mouseup', ()=>{ drag = null; vp.classList.remove('dragging'); setTimeout(()=>moved=false,0); });
+vp.addEventListener('wheel', e=>{ e.preventDefault(); const r=vp.getBoundingClientRect();
+  zoomAt(Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015)), e.clientX-r.left, e.clientY-r.top); }, {passive:false});
+// touch: one finger pan, two finger pinch
+let tp = null;
+vp.addEventListener('touchstart', e=>{ const t=[...e.touches]; tp = {t:t.map(x=>({x:x.clientX,y:x.clientY})), tx, ty, sc}; moved=false; }, {passive:true});
+vp.addEventListener('touchmove', e=>{ if (!tp) return; e.preventDefault(); const t=[...e.touches];
+  if (t.length===1 && tp.t.length===1){ const dx=t[0].clientX-tp.t[0].x, dy=t[0].clientY-tp.t[0].y; if (Math.abs(dx)+Math.abs(dy)>6) moved=true; tx=tp.tx+dx; ty=tp.ty+dy; applyT(); }
+  else if (t.length===2 && tp.t.length===2){ moved=true; const d0=Math.hypot(tp.t[0].x-tp.t[1].x,tp.t[0].y-tp.t[1].y), d1=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+    const r=vp.getBoundingClientRect(), cx=(t[0].clientX+t[1].clientX)/2-r.left, cy=(t[0].clientY+t[1].clientY)/2-r.top;
+    sc=tp.sc; tx=tp.tx; ty=tp.ty; zoomAt(d1/d0, cx, cy); } }, {passive:false});
+vp.addEventListener('touchend', ()=>{ tp=null; setTimeout(()=>moved=false,0); });
+document.getElementById('zoomIn').onclick = ()=>{ const r=vp.getBoundingClientRect(); zoomAt(1.25, r.width/2, r.height/2); };
+document.getElementById('zoomOut').onclick = ()=>{ const r=vp.getBoundingClientRect(); zoomAt(.8, r.width/2, r.height/2); };
+document.getElementById('fit').onclick = fit;
+document.getElementById('expandAll').onclick = ()=>{ byId.forEach(n=>n.open = n.kids.length>0); render(); fit(); };
+document.getElementById('collapse').onclick = ()=>{ byId.forEach(n=>n.open=false); root.open = true; render(); fit(); };
+
+// ---------- details panel ----------
+const panel = document.getElementById('panel');
+function row(n, sub){ return `<div class="prow" data-id="${esc(n.id)}"><div class="av" style="--dc:${deptColor[n.d]}">${n.ini}</div><div><b>${esc(n.disp)}</b><span>${esc(sub ?? n.t)}</span></div></div>`; }
+function select(n){
+  if (selected) cards.get(selected)?.classList.remove('sel');
+  selected = n; cards.get(n)?.classList.add('sel');
+  const chain = []; let p = n.parent; while (p){ chain.unshift(p); p = p.parent; }
+  panel.innerHTML = `
+    <div class="ph"><button class="close" title="Close">×</button>
+      <div class="av" style="--dc:${deptColor[n.d]}">${n.ini}</div>
+      <h2>${esc(n.disp)}</h2><div class="tt">${esc(n.t)}</div></div>
+    <div class="pb">
+      <div class="sec"><div class="kv">
+        <dt>Department</dt><dd>${esc(deptLabel(n.d))}</dd>
+        <dt>Dept. code</dt><dd>${esc((n.d.match(/^\d+/)||['—'])[0])}</dd>
+        <dt>Location</dt><dd>${esc(n.l)}</dd>
+        <dt>Level</dt><dd>${depth(n)===0 ? 'Top of organization' : depth(n)+' below CEO'}</dd>
+      </div></div>
+      <div class="sec stats"><div class="stat"><b>${n.kids.length}</b><span>Direct reports</span></div><div class="stat"><b>${total(n)}</b><span>Total org size</span></div></div>
+      ${n.parent ? `<div class="sec"><h3>Reports to</h3><div class="plist">${row(n.parent)}</div></div>` : ''}
+      ${chain.length>1 ? `<div class="sec chain"><h3>Chain of command</h3><div class="plist">${chain.map(c=>row(c)).join('')}</div></div>` : ''}
+      ${n.kids.length ? `<div class="sec"><h3>Direct reports (${n.kids.length})</h3><div class="plist">${n.kids.map(k=>row(k, k.t + (k.kids.length?` · ${total(k)} in org`:''))).join('')}</div></div>` : ''}
+      <div class="panel-actions">
+        ${n.parent ? '<button class="btn" data-act="up">Go to manager</button>' : ''}
+        ${n.kids.length ? `<button class="btn" data-act="team">${n.open ? 'Hide team' : 'Show team'}</button>` : ''}
+      </div>
+    </div>`;
+  panel.classList.add('open');
+  panel.querySelector('.close').onclick = ()=>{ panel.classList.remove('open'); cards.get(selected)?.classList.remove('sel'); selected = null; };
+  panel.querySelectorAll('.prow').forEach(r=> r.onclick = ()=> focus(byId.get(r.dataset.id)));
+  panel.querySelector('[data-act=up]')?.addEventListener('click', ()=>focus(n.parent));
+  panel.querySelector('[data-act=team]')?.addEventListener('click', ()=>{ n.open=!n.open; render(n); select(n); });
+}
+function focus(n){
+  let p = n.parent; while (p){ p.open = true; p = p.parent; }
+  render(); select(n); centerOn(n);
+  const el = cards.get(n); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+
+// ---------- highlight filters ----------
+function applyFilter(){
+  const d = fDept.value, l = fLoc.value;
+  cards.forEach((el,n)=> el.classList.toggle('dim', !!((d && n.d!==d) || (l && n.l!==l))));
+}
+fDept.onchange = fLoc.onchange = ()=>{
+  const d = fDept.value, l = fLoc.value;
+  if (d || l){ // open only the branches that lead to a match
+    byId.forEach(n=>n.open=false); root.open = true;
+    byId.forEach(n=>{ if ((!d||n.d===d) && (!l||n.l===l)){ let p=n.parent; while(p){p.open=true;p=p.parent;} } });
+    render(); fit();
+  } else applyFilter();
+};
+
+// ---------- search ----------
+const q = document.getElementById('q'), res = document.getElementById('results');
+let hits = [], act = 0;
+q.addEventListener('input', ()=>{
+  const s = q.value.trim().toLowerCase();
+  if (!s){ res.classList.remove('open'); return; }
+  const terms = s.split(/\s+/);
+  hits = [...byId.values()].filter(n=>{ const hay = (n.disp+' '+n.id+' '+n.t+' '+n.d+' '+n.l).toLowerCase(); return terms.every(t=>hay.includes(t)); })
+    .sort((a,b)=> (b.disp.toLowerCase().startsWith(s)) - (a.disp.toLowerCase().startsWith(s)) || a.disp.localeCompare(b.disp)).slice(0,30);
+  act = 0;
+  res.innerHTML = hits.length ? hits.map((n,i)=>`<div data-i="${i}" class="${i?'':'active'}"><b>${esc(n.disp)}</b><span>${esc(n.t)} · ${esc(deptLabel(n.d))}</span></div>`).join('')
+    : '<div style="cursor:default"><span>No matches</span></div>';
+  res.classList.add('open');
+});
+res.addEventListener('mousedown', e=>{ const d = e.target.closest('[data-i]'); if (d){ e.preventDefault(); pick(+d.dataset.i); } });
+q.addEventListener('keydown', e=>{
+  if (!res.classList.contains('open') || !hits.length) return;
+  if (e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); act = (act + (e.key==='ArrowDown'?1:-1) + hits.length) % hits.length;
+    [...res.children].forEach((c,i)=>c.classList.toggle('active', i===act)); res.children[act].scrollIntoView({block:'nearest'}); }
+  if (e.key==='Enter'){ e.preventDefault(); pick(act); }
+  if (e.key==='Escape'){ res.classList.remove('open'); }
+});
+q.addEventListener('blur', ()=> setTimeout(()=>res.classList.remove('open'), 100));
+function pick(i){ const n = hits[i]; if (!n) return; res.classList.remove('open'); q.blur(); focus(n); }
+document.addEventListener('keydown', e=>{ if (e.key==='/' && document.activeElement!==q){ e.preventDefault(); q.focus(); } });
+window.addEventListener('resize', ()=>{});
+
+// ---------- init: CEO + direct reports visible ----------
+root.open = true;
+render(); fit();
+</script>
+</body>
+</html>
